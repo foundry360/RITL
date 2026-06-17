@@ -34,7 +34,7 @@ export function Button({
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center rounded-[4px] font-medium transition-all duration-300 disabled:opacity-40 disabled:pointer-events-none",
+        "inline-flex items-center justify-center rounded-[8px] font-medium transition-all duration-300 disabled:opacity-40 disabled:pointer-events-none",
         variantStyles[variant],
         sizeStyles[size],
         className
@@ -63,7 +63,7 @@ export function ButtonLink({
     <a
       href={href}
       className={cn(
-        "inline-flex items-center justify-center rounded-[4px] font-medium transition-all duration-300",
+        "inline-flex items-center justify-center rounded-[8px] font-medium transition-all duration-300",
         variantStyles[variant],
         sizeStyles[size],
         className

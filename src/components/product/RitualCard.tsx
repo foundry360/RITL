@@ -79,7 +79,7 @@ const ritualBenefits = [
 
 export function RitualCard() {
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-[4px] border border-graphite bg-near-black transition-colors hover:border-graphite/80 hover:bg-soft-black/40">
+    <article className="group flex h-full flex-col overflow-hidden rounded-[8px] border border-graphite bg-near-black transition-colors hover:border-graphite/80 hover:bg-soft-black/40">
       <div className="flex flex-1 flex-col p-5 lg:p-6">
         <div>
           <span className="inline-block text-[10px] tracking-[0.2em] uppercase text-steel-silver mb-2">

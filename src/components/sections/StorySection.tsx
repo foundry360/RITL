@@ -22,7 +22,7 @@ function StoryImage({
   return (
     <div
       className={cn(
-        "relative h-[530px] overflow-hidden rounded-[4px] border border-graphite bg-elevated",
+        "relative h-[530px] overflow-hidden rounded-[8px] border border-graphite bg-elevated",
         className
       )}
     >
@@ -86,7 +86,7 @@ export function StorySection() {
 
           <FadeIn delay={150}>
             <StoryImage
-              src="/story-mushrooms-v2.png"
+              src="/story-mushrooms-v3.png"
               alt="RITL Focus Coffee with functional mushrooms and ingredients"
             />
           </FadeIn>

@@ -16,7 +16,7 @@ export default function CheckoutSuccessPage() {
       description="Your order has been received. A confirmation email will arrive shortly with tracking details once your ritual ships."
     >
       <ClearCheckoutSession />
-      <div className="mx-auto max-w-lg rounded-[4px] border border-graphite bg-soft-black/40 p-10 text-center">
+      <div className="mx-auto max-w-lg rounded-[8px] border border-graphite bg-soft-black/40 p-10 text-center">
         <p className="text-sm leading-relaxed text-text-secondary">
           We are preparing your order for fulfillment. You will receive shipping
           updates as soon as your package is on its way.

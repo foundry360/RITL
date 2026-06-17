@@ -25,7 +25,7 @@ function GalleryNavButton({
       onClick={onClick}
       aria-label={label}
       className={cn(
-        "absolute top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-[4px] border border-graphite bg-near-black/80 text-text-primary backdrop-blur-sm transition-colors",
+        "absolute top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-[8px] border border-graphite bg-near-black/80 text-text-primary backdrop-blur-sm transition-colors",
         direction === "previous" ? "left-3" : "right-3",
         "hover:border-steel-silver/50 hover:bg-soft-black/90"
       )}
@@ -108,7 +108,7 @@ function GalleryThumbnail({
       aria-label={item.type === "image" ? item.alt : item.label || item.alt}
       aria-pressed={isActive}
       className={cn(
-        "relative aspect-square w-full overflow-hidden rounded-[4px] border bg-near-black transition-colors",
+        "relative aspect-square w-full overflow-hidden rounded-[8px] border bg-near-black transition-colors",
         isActive
           ? "border-steel-silver/60"
           : "border-graphite hover:border-steel-silver/30"
@@ -166,7 +166,7 @@ export function ProductGallery({ product, className }: ProductGalleryProps) {
 
   return (
     <div className={cn("space-y-3", className)}>
-      <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[4px] border border-graphite bg-near-black">
+      <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[8px] border border-graphite bg-near-black">
         <GalleryMain item={activeItem} productName={product.name} />
 
         {hasMultipleImages && (

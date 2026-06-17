@@ -96,7 +96,7 @@ export function CheckoutPayment({ items, cancelHref = "/cart" }: CheckoutPayment
 
   if (!paymentState?.clientSecret || !paymentState.customerId) {
     return (
-      <div className="rounded-[4px] border border-graphite bg-soft-black/40 p-8">
+      <div className="rounded-[8px] border border-graphite bg-soft-black/40 p-8">
         <div className="space-y-3">
           <h3 className="text-[10px] tracking-[0.18em] uppercase text-text-muted">
             Contact
@@ -115,7 +115,7 @@ export function CheckoutPayment({ items, cancelHref = "/cart" }: CheckoutPayment
               required
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="w-full rounded-[4px] border border-graphite bg-[#16181d] px-3 py-3 text-sm text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-steel-silver/50"
+              className="w-full rounded-[8px] border border-graphite bg-[#16181d] px-3 py-3 text-sm text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-steel-silver/50"
               placeholder="you@example.com"
             />
           </div>

@@ -15,7 +15,7 @@ export function CartContent() {
 
   if (!isReady) {
     return (
-      <div className="rounded-[4px] border border-graphite bg-soft-black/40 p-12 text-center">
+      <div className="rounded-[8px] border border-graphite bg-soft-black/40 p-12 text-center">
         <p className="text-sm text-text-secondary">Loading cart...</p>
       </div>
     );
@@ -23,7 +23,7 @@ export function CartContent() {
 
   if (items.length === 0) {
     return (
-      <div className="rounded-[4px] border border-graphite bg-soft-black/40 p-12 text-center">
+      <div className="rounded-[8px] border border-graphite bg-soft-black/40 p-12 text-center">
         <p className="text-sm text-text-secondary">Your cart is empty.</p>
         <div className="mt-6">
           <ButtonLink href="/#products">Shop Products</ButtonLink>
@@ -33,7 +33,7 @@ export function CartContent() {
   }
 
   return (
-    <div className="rounded-[4px] border border-graphite bg-soft-black/40">
+    <div className="rounded-[8px] border border-graphite bg-soft-black/40">
       <ul className="divide-y divide-graphite">
         {items.map((item) => {
           const product = getProduct(item.productId);
@@ -71,7 +71,7 @@ export function CartContent() {
               </div>
 
               <div className="flex flex-wrap items-center gap-4">
-                <div className="flex items-center rounded-[4px] border border-graphite">
+                <div className="flex items-center rounded-[8px] border border-graphite">
                   <button
                     type="button"
                     onClick={() =>

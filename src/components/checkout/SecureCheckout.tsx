@@ -25,7 +25,7 @@ export function SecureCheckout({
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-12 lg:items-start">
       <CheckoutOrderSummary items={items} showEditLink={showEditLink} />
 
-      <div className="rounded-[4px] border border-graphite bg-soft-black/40 p-6 sm:p-8">
+      <div className="rounded-[8px] border border-graphite bg-soft-black/40 p-6 sm:p-8">
         <div className="border-b border-graphite pb-6">
           <h2 className="text-xs tracking-[0.18em] uppercase text-text-secondary">
             Payment

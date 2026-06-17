@@ -26,7 +26,7 @@ export function PurchaseTypeSelector({
           type="button"
           onClick={() => onChange("one-time")}
           className={cn(
-            "rounded-[4px] border px-4 py-3 text-left transition-colors",
+            "rounded-[8px] border px-4 py-3 text-left transition-colors",
             value === "one-time"
               ? "border-steel-silver/50 bg-steel-silver/10"
               : "border-graphite bg-transparent hover:border-graphite/80"
@@ -43,7 +43,7 @@ export function PurchaseTypeSelector({
           type="button"
           onClick={() => onChange("subscription")}
           className={cn(
-            "rounded-[4px] border px-4 py-3 text-left transition-colors",
+            "rounded-[8px] border px-4 py-3 text-left transition-colors",
             value === "subscription"
               ? "border-steel-silver/50 bg-steel-silver/10"
               : "border-graphite bg-transparent hover:border-graphite/80"

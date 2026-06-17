@@ -48,7 +48,7 @@ export function ProductMedia({
   return (
     <div
       className={cn(
-        "relative w-full overflow-hidden rounded-[4px] bg-near-black",
+        "relative w-full overflow-hidden rounded-[8px] bg-near-black",
         aspectClassName,
         !product.viewerUrl &&
           (product.variant === "focus"

@@ -17,7 +17,7 @@ export function CartCheckoutContent() {
 
   if (!isReady) {
     return (
-      <div className="rounded-[4px] border border-graphite bg-soft-black/40 p-12 text-center">
+      <div className="rounded-[8px] border border-graphite bg-soft-black/40 p-12 text-center">
         <p className="text-sm text-text-secondary">Preparing secure checkout...</p>
       </div>
     );

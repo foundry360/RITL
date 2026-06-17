@@ -93,7 +93,7 @@ export function BenefitsRITL() {
         <div className="mt-16 grid gap-6 sm:grid-cols-2">
           {benefits.map((benefit, index) => (
             <FadeIn key={benefit.title} delay={index * 100}>
-              <div className="h-full overflow-hidden rounded-[4px] border border-graphite p-8 transition-colors hover:border-graphite/80 hover:bg-soft-black/50">
+              <div className="h-full overflow-hidden rounded-[8px] border border-graphite p-8 transition-colors hover:border-graphite/80 hover:bg-soft-black/50">
                 <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-full border border-graphite text-steel-silver">
                   {benefit.icon}
                 </div>

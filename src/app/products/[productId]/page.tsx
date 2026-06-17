@@ -50,7 +50,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               <ProductMedia
                 product={product}
                 aspectClassName="aspect-[4/5]"
-                className="rounded-[4px] border border-graphite"
+                className="rounded-[8px] border border-graphite"
               />
             )}
 

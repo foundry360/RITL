@@ -23,7 +23,7 @@ export function EditorialSplit() {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
           <FadeIn>
-            <div className="relative aspect-[4/5] overflow-hidden rounded-[4px] bg-elevated border border-graphite">
+            <div className="relative aspect-[4/5] overflow-hidden rounded-[8px] bg-elevated border border-graphite">
               <Image
                 src="/philosophy-workspace.png"
                 alt="Hand holding espresso over a notebook and creative workspace"

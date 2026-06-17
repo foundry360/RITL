@@ -40,7 +40,7 @@ export function CheckoutOrderSummary({
   );
 
   return (
-    <div className="rounded-[4px] border border-graphite bg-soft-black/40">
+    <div className="rounded-[8px] border border-graphite bg-soft-black/40">
       <div className="flex items-center justify-between border-b border-graphite px-6 py-5">
         <h2 className="text-xs tracking-[0.18em] uppercase text-text-secondary">
           Order Summary

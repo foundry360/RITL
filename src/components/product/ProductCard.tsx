@@ -15,7 +15,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const { getPriceLabel, isReady } = usePricing();
 
   return (
-    <article className="group overflow-hidden rounded-[4px] border border-graphite bg-near-black transition-colors hover:border-graphite/80 hover:bg-soft-black/40">
+    <article className="group overflow-hidden rounded-[8px] border border-graphite bg-near-black transition-colors hover:border-graphite/80 hover:bg-soft-black/40">
       <ProductMedia product={product} />
 
       <div className="p-5 lg:p-6">

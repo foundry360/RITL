@@ -15,7 +15,7 @@ export function CartLink({ className }: CartLinkProps) {
     <Link
       href="/cart"
       className={cn(
-        "relative inline-flex items-center justify-center rounded-[4px] border border-graphite px-3 py-2 text-text-muted transition-all hover:border-steel-silver/40 hover:text-text-primary",
+        "relative inline-flex items-center justify-center rounded-[8px] border border-graphite px-3 py-2 text-text-muted transition-all hover:border-steel-silver/40 hover:text-text-primary",
         className
       )}
       aria-label={`Cart${itemCount > 0 ? `, ${itemCount} items` : ""}`}

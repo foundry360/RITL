@@ -9,14 +9,14 @@ export function OrderLineItemThumbnail({ product }: OrderLineItemThumbnailProps)
   if (!product.thumbnailSrc) {
     return (
       <div
-        className="h-20 w-16 shrink-0 rounded-[4px] border border-graphite bg-elevated"
+        className="h-20 w-16 shrink-0 rounded-[8px] border border-graphite bg-elevated"
         aria-hidden
       />
     );
   }
 
   return (
-    <div className="relative h-20 w-16 shrink-0 overflow-hidden rounded-[4px] border border-graphite bg-near-black">
+    <div className="relative h-20 w-16 shrink-0 overflow-hidden rounded-[8px] border border-graphite bg-near-black">
       <Image
         src={product.thumbnailSrc}
         alt={product.name}
