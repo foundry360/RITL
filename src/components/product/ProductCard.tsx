@@ -1,7 +1,10 @@
+"use client";
+
 import type { Product } from "@/lib/stripe/products";
 import { AddToCartButton } from "@/components/product/AddToCartButton";
 import { ProductMedia } from "@/components/product/ProductMedia";
 import { ButtonLink } from "@/components/ui/Button";
+import { usePricing } from "@/context/PricingContext";
 import { cn } from "@/lib/utils";
 
 interface ProductCardProps {
@@ -9,6 +12,8 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  const { getPriceLabel, isReady } = usePricing();
+
   return (
     <article className="group overflow-hidden rounded-[4px] border border-graphite bg-near-black transition-colors hover:border-graphite/80 hover:bg-soft-black/40">
       <ProductMedia product={product} />
@@ -29,7 +34,7 @@ export function ProductCard({ product }: ProductCardProps) {
             </h3>
           </div>
           <span className="text-base font-light text-text-secondary tabular-nums">
-            {product.priceLabel}
+            {isReady ? getPriceLabel(product.id, "one-time") : "—"}
           </span>
         </div>
 

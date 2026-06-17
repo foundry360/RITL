@@ -1,59 +1,60 @@
-import Link from "next/link";
+import { CheckoutPageShell } from "@/components/checkout/CheckoutPageShell";
+import { SecureCheckout } from "@/components/checkout/SecureCheckout";
 import { notFound } from "next/navigation";
-import { EmbeddedCheckoutForm } from "@/components/product/EmbeddedCheckoutForm";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
-import { getProduct, type ProductId } from "@/lib/stripe/products";
+import {
+  getProduct,
+  type ProductId,
+  type PurchaseType,
+} from "@/lib/stripe/products";
 
 interface CheckoutPageProps {
   params: Promise<{ productId: string }>;
+  searchParams: Promise<{ purchaseType?: string }>;
+}
+
+function parsePurchaseType(value?: string): PurchaseType {
+  return value === "subscription" ? "subscription" : "one-time";
 }
 
 export async function generateMetadata({ params }: CheckoutPageProps) {
   const { productId } = await params;
   const product = getProduct(productId);
-  if (!product) return { title: "Checkout | Functional Coffee" };
+  if (!product) return { title: "Secure Checkout | RITL Coffee" };
   return {
-    title: `Checkout | ${product.name} | Functional Coffee`,
+    title: `Secure Checkout | ${product.name} | RITL Coffee`,
   };
 }
 
-export default async function CheckoutPage({ params }: CheckoutPageProps) {
+export default async function ProductCheckoutPage({
+  params,
+  searchParams,
+}: CheckoutPageProps) {
   const { productId } = await params;
+  const { purchaseType: purchaseTypeParam } = await searchParams;
   const product = getProduct(productId);
 
   if (!product) {
     notFound();
   }
 
+  const purchaseType = parsePurchaseType(purchaseTypeParam);
+  const items = [
+    { productId: product.id as ProductId, quantity: 1, purchaseType },
+  ];
+
   return (
-    <>
-      <Header />
-      <main className="min-h-screen bg-near-black pt-24 pb-16">
-        <div className="mx-auto max-w-3xl px-6 lg:px-8">
-          <Link
-            href={`/products/${product.id}`}
-            className="text-xs tracking-[0.14em] uppercase text-text-muted transition-colors hover:text-text-primary"
-          >
-            ← Back to {product.name}
-          </Link>
-
-          <div className="mt-8 border-b border-graphite pb-8">
-            <p className="text-xs tracking-[0.2em] uppercase text-text-muted">
-              Secure Checkout
-            </p>
-            <h1 className="mt-2 text-3xl font-light tracking-tight text-text-primary">
-              {product.name}
-            </h1>
-            <p className="mt-2 text-text-secondary">{product.priceLabel}</p>
-          </div>
-
-          <div className="mt-8">
-            <EmbeddedCheckoutForm productId={product.id as ProductId} />
-          </div>
-        </div>
-      </main>
-      <Footer />
-    </>
+    <CheckoutPageShell
+      step="payment"
+      backHref={`/products/${product.id}`}
+      backLabel={`Back to ${product.name}`}
+      title="Complete your order"
+      description="Enter your shipping and payment details below. Your information is encrypted and processed securely by Stripe."
+    >
+      <SecureCheckout
+        items={items}
+        showEditLink={false}
+        cancelHref={`/products/${product.id}`}
+      />
+    </CheckoutPageShell>
   );
 }

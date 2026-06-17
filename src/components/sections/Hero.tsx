@@ -24,10 +24,10 @@ export function Hero() {
         <h1 className="animate-fade-up animate-delay-100 mx-auto max-w-5xl text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light tracking-tight text-text-primary leading-[1.05]">
           Focus. Clarity. Performance.
         </h1>
-        <p className="animate-fade-up animate-delay-200 mx-auto mt-8 max-w-2xl text-base sm:text-lg font-light leading-relaxed text-text-secondary">
-          RITL (rit-uhl) Coffee is a functional ritual for those who optimize every
-          moment. Built for clean, sustained energy and uninterrupted focus without
-          crashes, noise, or compromise.
+        <p className="animate-fade-up animate-delay-200 mx-auto mt-8 max-w-3xl text-base sm:text-lg font-light leading-relaxed text-text-secondary lg:max-w-4xl">
+          RITL (rit-uhl) Coffee is a functional ritual for those who optimize every moment.
+          <br />
+          Built for clean, sustained energy and uninterrupted focus without crashes, noise, or compromise.
         </p>
         <div className="animate-fade-up animate-delay-300 mt-12">
           <ButtonLink href="/#products" size="lg">

@@ -1,13 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AddToCartButton } from "@/components/product/AddToCartButton";
-import { CheckoutButton } from "@/components/product/CheckoutButton";
 import { ProductAccordions } from "@/components/product/ProductAccordions";
+import { ProductPurchasePanel } from "@/components/product/ProductPurchasePanel";
 import { ProductGallery } from "@/components/product/ProductGallery";
 import { ProductMedia } from "@/components/product/ProductMedia";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { ButtonLink } from "@/components/ui/Button";
 import { getProduct } from "@/lib/stripe/products";
 import { cn } from "@/lib/utils";
 
@@ -70,23 +68,16 @@ export default async function ProductPage({ params }: ProductPageProps) {
               <h1 className="mt-3 text-4xl font-light tracking-tight text-text-primary">
                 {product.name}
               </h1>
-              <p className="mt-2 text-2xl font-light text-text-secondary tabular-nums">
-                {product.priceLabel}
-              </p>
               <p className="mt-6 text-base leading-relaxed text-text-secondary">
                 {product.longDescription}
               </p>
 
               <div className="mt-8">
-                <ProductAccordions product={product} />
+                <ProductPurchasePanel product={product} />
               </div>
 
-              <div className="mt-10 flex flex-wrap gap-3">
-                <AddToCartButton productId={product.id} />
-                <CheckoutButton productId={product.id} />
-                <ButtonLink href="/#products" variant="outline">
-                  Continue Shopping
-                </ButtonLink>
+              <div className="mt-10">
+                <ProductAccordions product={product} />
               </div>
             </div>
           </div>

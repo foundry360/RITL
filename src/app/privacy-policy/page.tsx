@@ -33,7 +33,7 @@ export default function PrivacyPolicyPage() {
       </p>
       <h2 className="text-base text-text-primary pt-4">Contact</h2>
       <p>
-        For privacy-related inquiries, contact us at privacy@functionalcoffee.com.
+        For privacy-related inquiries, contact us at info@getritl.com.
       </p>
     </PolicyLayout>
   );

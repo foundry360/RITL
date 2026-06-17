@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { ProductId } from "@/lib/stripe/products";
+import type { ProductId, PurchaseType } from "@/lib/stripe/products";
 import { useCart } from "@/context/CartContext";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 interface AddToCartButtonProps {
   productId: ProductId;
   quantity?: number;
+  purchaseType?: PurchaseType;
   label?: string;
   className?: string;
   size?: "sm" | "md" | "lg";
@@ -20,6 +21,7 @@ interface AddToCartButtonProps {
 export function AddToCartButton({
   productId,
   quantity = 1,
+  purchaseType = "one-time",
   label = "Add to Cart",
   className,
   size = "md",
@@ -31,7 +33,7 @@ export function AddToCartButton({
   const [added, setAdded] = useState(false);
 
   const handleClick = useCallback(() => {
-    addItem(productId, quantity);
+    addItem(productId, quantity, purchaseType);
     setAdded(true);
 
     if (redirectToCart) {
@@ -40,7 +42,7 @@ export function AddToCartButton({
     }
 
     window.setTimeout(() => setAdded(false), 1500);
-  }, [addItem, productId, quantity, redirectToCart, router]);
+  }, [addItem, productId, quantity, purchaseType, redirectToCart, router]);
 
   return (
     <Button

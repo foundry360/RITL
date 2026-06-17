@@ -1,5 +1,7 @@
 export type ProductId = "focus-coffee" | "matcha";
 
+export type PurchaseType = "one-time" | "subscription";
+
 export interface ProductDescriptionContent {
   paragraphs: string[];
   listItems?: string[];
@@ -42,12 +44,16 @@ export interface Product {
   longDescription: string;
   price: number;
   priceLabel: string;
+  subscriptionPrice: number;
+  subscriptionPriceLabel: string;
+  subscriptionIntervalWeeks: number;
   variant: "focus" | "matcha";
   features: string[];
   productDescription: string | ProductDescriptionContent;
   preparation: string | PreparationContent;
   blendComposition: string | ProductDescriptionContent;
   viewerUrl?: string;
+  thumbnailSrc?: string;
   gallery?: ProductGalleryItem[];
 }
 
@@ -62,9 +68,13 @@ export const products: Record<ProductId, Product> = {
       "Focus Coffee is formulated for those who demand precision from their morning ritual. Clean caffeine delivery paired with nootropic compounds supports sharp attention without the noise of conventional coffee.",
     price: 48,
     priceLabel: "$48",
+    subscriptionPrice: 40.8,
+    subscriptionPriceLabel: "$40.80",
+    subscriptionIntervalWeeks: 4,
     variant: "focus",
+    thumbnailSrc: "/products/focus-checkout-thumb.png",
     viewerUrl:
-      "https://viewer.roastify.app?productType=Tubes&artworkUrl=https://storage.roastify.app/design-upload/da9a3df6-35b8-4801-b1d7-cf3c3e3ed7bd.jpeg",
+      "https://viewer.roastify.app?productType=Tubes&artworkUrl=https://storage.roastify.app/design-upload/94dcec74-dc62-4cfb-984c-627881d0f187.jpeg",
     features: [
       "L-Theanine for calm alertness",
       "120mg clean caffeine",
@@ -126,21 +136,12 @@ export const products: Record<ProductId, Product> = {
       "A carefully crafted blend of traditional Papua New Guinea Arabica varietals: Typica, Bourbon, and Arusha, selected for their natural structure, refined sweetness, and bright complexity. High-altitude beans grown in nutrient-rich volcanic soils form the foundation of clarity and clean flavor. This base is elevated with functional mushrooms, including Lion's Mane for crisp, focused cognitive support and Chaga for smooth, grounding depth with subtle vanilla-woody undertones. The result is a premium instant functional coffee designed to deliver balanced energy, enhanced focus, and a smooth, full-bodied finish without compromise.",
     gallery: [
       {
-        id: "interactive-viewer",
-        type: "viewer",
-        viewerUrl:
-          "https://viewer.roastify.app?productType=Tubes&artworkUrl=https://storage.roastify.app/design-upload/da9a3df6-35b8-4801-b1d7-cf3c3e3ed7bd.jpeg",
-        alt: "Focus Coffee interactive product view",
-        label: "3D View",
-        thumbnailSrc: "/products/focus-tube-thumb.png",
-      },
-      {
-        id: "product-image",
+        id: "product-hero",
         type: "image",
-        src: "/products/focus-detail-v2.png",
-        alt: "RITL Focus Coffee product detail",
-        label: "Detail",
-        fit: "cover",
+        src: "/products/focus-hero-v4.png",
+        alt: "RITL Focus Coffee — Think sharp. Execute clearly.",
+        label: "Product",
+        fit: "contain",
       },
       {
         id: "hot-cold",
@@ -158,6 +159,15 @@ export const products: Record<ProductId, Product> = {
         label: "Certified",
         fit: "cover",
       },
+      {
+        id: "interactive-viewer",
+        type: "viewer",
+        viewerUrl:
+          "https://viewer.roastify.app?productType=Tubes&artworkUrl=https://storage.roastify.app/design-upload/94dcec74-dc62-4cfb-984c-627881d0f187.jpeg",
+        alt: "Focus Coffee interactive product view",
+        label: "3D View",
+        thumbnailSrc: "/products/focus-3d-thumb.png",
+      },
     ],
   },
   matcha: {
@@ -170,7 +180,11 @@ export const products: Record<ProductId, Product> = {
       "Our Matcha delivers the meditative clarity of ceremonial-grade green tea with a functional edge. Clean, sustained energy builds gradually, supporting steady focus throughout your day.",
     price: 52,
     priceLabel: "$52",
+    subscriptionPrice: 44.2,
+    subscriptionPriceLabel: "$44.20",
+    subscriptionIntervalWeeks: 4,
     variant: "matcha",
+    thumbnailSrc: "/products/matcha-checkout-thumb.png",
     viewerUrl:
       "https://viewer.roastify.app?productType=Tubes&artworkUrl=https://storage.roastify.app/design-upload/5bdde4ca-ad40-46d3-b653-0b217f659c5f.jpeg",
     features: [
@@ -247,15 +261,6 @@ export const products: Record<ProductId, Product> = {
       "A ceremonial-grade matcha crafted from single-cultivar and select-cultivar blends of shade-grown, first-harvest tencha sourced from renowned Japanese tea-growing regions. Tender young leaves are carefully cultivated under shade to enhance chlorophyll and amino acid content, then hand-selected, steamed, and stone-milled into an ultra-fine powder. This traditional process preserves the matcha's natural sweetness, vivid green color, and rich umami profile, resulting in a pure 100% matcha expression designed for clarity, vibrancy, and smooth, sustained energy.",
     gallery: [
       {
-        id: "interactive-viewer",
-        type: "viewer",
-        viewerUrl:
-          "https://viewer.roastify.app?productType=Tubes&artworkUrl=https://storage.roastify.app/design-upload/5bdde4ca-ad40-46d3-b653-0b217f659c5f.jpeg",
-        alt: "Matcha interactive product view",
-        label: "3D View",
-        thumbnailSrc: "/products/matcha-tube-mockup.png",
-      },
-      {
         id: "product-image",
         type: "image",
         src: "/products/matcha-detail-v2.png",
@@ -279,6 +284,15 @@ export const products: Record<ProductId, Product> = {
         label: "Certified",
         fit: "cover",
       },
+      {
+        id: "interactive-viewer",
+        type: "viewer",
+        viewerUrl:
+          "https://viewer.roastify.app?productType=Tubes&artworkUrl=https://storage.roastify.app/design-upload/5bdde4ca-ad40-46d3-b653-0b217f659c5f.jpeg",
+        alt: "Matcha interactive product view",
+        label: "3D View",
+        thumbnailSrc: "/products/matcha-tube-mockup.png",
+      },
     ],
   },
 };
@@ -287,10 +301,37 @@ export function getProduct(id: string): Product | undefined {
   return products[id as ProductId];
 }
 
-export function getStripePriceId(productId: ProductId): string | undefined {
-  const envMap: Record<ProductId, string | undefined> = {
-    "focus-coffee": process.env.STRIPE_PRICE_FOCUS_COFFEE,
-    matcha: process.env.STRIPE_PRICE_MATCHA,
+export function getProductUnitPrice(
+  product: Product,
+  purchaseType: PurchaseType
+): number {
+  return purchaseType === "subscription"
+    ? product.subscriptionPrice
+    : product.price;
+}
+
+export function getProductPriceLabel(
+  product: Product,
+  purchaseType: PurchaseType
+): string {
+  return purchaseType === "subscription"
+    ? product.subscriptionPriceLabel
+    : product.priceLabel;
+}
+
+export function getStripePriceId(
+  productId: ProductId,
+  purchaseType: PurchaseType = "one-time"
+): string | undefined {
+  const envMap: Record<ProductId, Record<PurchaseType, string | undefined>> = {
+    "focus-coffee": {
+      "one-time": process.env.STRIPE_PRICE_FOCUS_COFFEE,
+      subscription: process.env.STRIPE_PRICE_FOCUS_COFFEE_SUBSCRIPTION,
+    },
+    matcha: {
+      "one-time": process.env.STRIPE_PRICE_MATCHA,
+      subscription: process.env.STRIPE_PRICE_MATCHA_SUBSCRIPTION,
+    },
   };
-  return envMap[productId];
+  return envMap[productId][purchaseType];
 }

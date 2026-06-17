@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Providers } from "@/components/providers/Providers";
+import { getStripePricing } from "@/lib/stripe/fetch-prices";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -19,18 +20,20 @@ export const metadata: Metadata = {
     "Premium functional coffee and matcha for cognitive wellness. Clean energy, mental clarity, and daily performance ritual optimization.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const initialPricing = await getStripePricing();
+
   return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-near-black text-text-primary">
-        <Providers>{children}</Providers>
+        <Providers initialPricing={initialPricing}>{children}</Providers>
       </body>
     </html>
   );

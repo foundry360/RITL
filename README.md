@@ -7,7 +7,7 @@ Premium functional wellness landing page with Stripe Embedded Checkout.
 - Next.js 16 (App Router)
 - React 19 + TypeScript
 - Tailwind CSS v4
-- Stripe Embedded Checkout
+- Stripe Payment Element (custom checkout form)
 
 ## Getting Started
 
@@ -23,10 +23,11 @@ npm install
 cp .env.example .env.local
 ```
 
-3. Configure Stripe keys in `.env.local`:
+3. Configure Stripe in `.env.local`:
    - Get test keys from [Stripe Dashboard](https://dashboard.stripe.com/apikeys)
-   - Optionally create products/prices and set `STRIPE_PRICE_FOCUS_COFFEE` and `STRIPE_PRICE_MATCHA`
-   - Without price IDs, checkout uses dynamic `price_data` (works in test mode)
+   - Add `STRIPE_SECRET_KEY` and `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
+   - Run `npm run stripe:setup` to create products/prices and write Price IDs to `.env.local`
+   - Run `npm run stripe:verify` to confirm the connection
 
 4. Run the development server:
 
@@ -51,7 +52,7 @@ src/
 │   └── support/
 ├── components/
 │   ├── layout/             # Header, Footer, PolicyLayout
-│   ├── product/            # ProductCard, CheckoutButton, EmbeddedCheckout
+│   ├── product/            # ProductCard, CheckoutButton, PaymentForm
 │   ├── sections/           # Landing page sections
 │   └── ui/                 # Button, Accordion, FadeIn primitives
 └── lib/
@@ -60,10 +61,13 @@ src/
 
 ## Stripe Setup
 
-1. Create two products in Stripe Dashboard (Focus Coffee $48, Matcha $52)
-2. Copy Price IDs to `.env.local`
-3. Enable Embedded Checkout in Stripe settings if required
-4. Use test card `4242 4242 4242 4242` for testing
+1. Copy `.env.example` to `.env.local` and add your Stripe test keys
+2. Run `npm run stripe:setup` to create catalog products and recurring prices in Stripe
+3. Run `npm run stripe:verify` to validate keys and price IDs
+4. Start the app and visit `/api/stripe/status` to confirm live pricing is loaded
+5. Use test card `4242 4242 4242 4242` for checkout
+
+Displayed prices are loaded from Stripe when price IDs are configured. Prices refresh every 60 seconds, on tab focus, and immediately when Stripe sends price webhooks to `/api/stripe/webhook`.
 
 ## Design System
 

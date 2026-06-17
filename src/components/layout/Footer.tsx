@@ -67,7 +67,7 @@ export function Footer() {
               Contact
             </h3>
             <p className="text-sm text-text-muted leading-relaxed">
-              hello@functionalcoffee.com
+              info@getritl.com
             </p>
             <p className="mt-4 text-sm text-text-muted leading-relaxed">
               Mon–Fri, 9am–6pm EST

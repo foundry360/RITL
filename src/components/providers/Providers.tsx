@@ -1,7 +1,16 @@
-"use client";
-
+import type { ProductPricingMap } from "@/lib/stripe/pricing";
 import { CartProvider } from "@/context/CartContext";
+import { PricingProvider } from "@/context/PricingContext";
 
-export function Providers({ children }: { children: React.ReactNode }) {
-  return <CartProvider>{children}</CartProvider>;
+interface ProvidersProps {
+  children: React.ReactNode;
+  initialPricing?: ProductPricingMap;
+}
+
+export function Providers({ children, initialPricing }: ProvidersProps) {
+  return (
+    <PricingProvider initialPricing={initialPricing}>
+      <CartProvider>{children}</CartProvider>
+    </PricingProvider>
+  );
 }
