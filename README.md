@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Functional Coffee | RITL
+
+Premium functional wellness landing page with Stripe Embedded Checkout.
+
+## Tech Stack
+
+- Next.js 16 (App Router)
+- React 19 + TypeScript
+- Tailwind CSS v4
+- Stripe Embedded Checkout
 
 ## Getting Started
 
-First, run the development server:
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Copy environment variables:
+
+```bash
+cp .env.example .env.local
+```
+
+3. Configure Stripe keys in `.env.local`:
+   - Get test keys from [Stripe Dashboard](https://dashboard.stripe.com/apikeys)
+   - Optionally create products/prices and set `STRIPE_PRICE_FOCUS_COFFEE` and `STRIPE_PRICE_MATCHA`
+   - Without price IDs, checkout uses dynamic `price_data` (works in test mode)
+
+4. Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+├── app/
+│   ├── api/checkout/       # Stripe session creation
+│   ├── checkout/           # Embedded checkout + success
+│   ├── products/           # Product detail pages
+│   ├── privacy-policy/
+│   ├── return-policy/
+│   ├── shipping-policy/
+│   ├── faqs/
+│   └── support/
+├── components/
+│   ├── layout/             # Header, Footer, PolicyLayout
+│   ├── product/            # ProductCard, CheckoutButton, EmbeddedCheckout
+│   ├── sections/           # Landing page sections
+│   └── ui/                 # Button, Accordion, FadeIn primitives
+└── lib/
+    └── stripe/             # Server/client Stripe utilities + product data
+```
 
-## Learn More
+## Stripe Setup
 
-To learn more about Next.js, take a look at the following resources:
+1. Create two products in Stripe Dashboard (Focus Coffee $48, Matcha $52)
+2. Copy Price IDs to `.env.local`
+3. Enable Embedded Checkout in Stripe settings if required
+4. Use test card `4242 4242 4242 4242` for testing
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Design System
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Monochrome editorial luxury: near-black backgrounds, steel silver accents, typography-driven hierarchy. No earthy tones or bright colors.
