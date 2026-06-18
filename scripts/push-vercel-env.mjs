@@ -12,8 +12,8 @@ const ENVIRONMENT = process.argv.includes("--preview")
 
 const OVERRIDES = {
   production: {
-    NEXT_PUBLIC_APP_URL: "https://www.getritl.com",
-    // Registered at https://www.getritl.com/api/stripe/webhook (test mode)
+    NEXT_PUBLIC_APP_URL: "https://www.getritul.com",
+    // Registered at https://www.getritul.com/api/stripe/webhook (test mode)
     STRIPE_WEBHOOK_SECRET: "whsec_TBrYdqDpFqHu55FNrWxeioPowBChe6fb",
   },
 };

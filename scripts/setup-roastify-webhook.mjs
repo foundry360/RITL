@@ -3,19 +3,26 @@
 import { isPlaceholder, loadProjectEnv } from "./load-env.mjs";
 import { ROASTIFY_WEBHOOK_EVENTS } from "./roastify-webhook-events.mjs";
 
-const DEFAULT_PRODUCTION_URL = "https://www.getritl.com";
+const DEFAULT_PRODUCTION_URL = "https://www.getritul.com";
 const ROASTIFY_DEVELOPERS_URL = "https://merchant.roastify.app/";
 
 function resolveAppUrl() {
-  const fromEnv =
-    process.env.PRODUCTION_APP_URL?.trim() ||
-    process.env.NEXT_PUBLIC_APP_URL?.trim();
-
-  if (!fromEnv || isPlaceholder(fromEnv)) {
-    return DEFAULT_PRODUCTION_URL;
+  const productionOverride = process.env.PRODUCTION_APP_URL?.trim();
+  if (productionOverride && !isPlaceholder(productionOverride)) {
+    return productionOverride.replace(/\/$/, "");
   }
 
-  return fromEnv.replace(/\/$/, "");
+  const fromEnv = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (
+    fromEnv &&
+    !isPlaceholder(fromEnv) &&
+    !fromEnv.includes("localhost") &&
+    !fromEnv.includes("127.0.0.1")
+  ) {
+    return fromEnv.replace(/\/$/, "");
+  }
+
+  return DEFAULT_PRODUCTION_URL;
 }
 
 function main() {
