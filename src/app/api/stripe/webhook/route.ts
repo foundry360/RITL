@@ -4,6 +4,9 @@ import { revalidateStripePricing } from "@/lib/stripe/fetch-prices";
 import { syncCustomerFromPaymentIntent } from "@/lib/stripe/checkout-customer";
 import { sendOrderConfirmationEmail } from "@/lib/email/send-order-confirmation";
 import { submitRoastifyFulfillment } from "@/lib/roastify/submit-fulfillment";
+import { buildWebsiteOrderInput } from "@/lib/orders/from-stripe";
+import { upsertWebsiteOrder } from "@/lib/orders/repository";
+import { isOrdersDatabaseConfigured } from "@/lib/supabase/config";
 import { getStripe } from "@/lib/stripe/server";
 
 const PRICE_EVENTS = new Set([
@@ -48,6 +51,22 @@ export async function POST(request: NextRequest) {
     if (event.type === "payment_intent.succeeded") {
       const paymentIntent = event.data.object as Stripe.PaymentIntent;
       await syncCustomerFromPaymentIntent(paymentIntent);
+
+      if (isOrdersDatabaseConfigured()) {
+        try {
+          const stripe = getStripe();
+          const fullPaymentIntent = await stripe.paymentIntents.retrieve(
+            paymentIntent.id,
+            { expand: ["customer"] }
+          );
+          const orderInput = await buildWebsiteOrderInput(fullPaymentIntent);
+          if (orderInput) {
+            await upsertWebsiteOrder(orderInput);
+          }
+        } catch (error) {
+          console.error("Failed to persist order in Supabase:", error);
+        }
+      }
 
       try {
         await sendOrderConfirmationEmail(paymentIntent);

@@ -4,11 +4,7 @@ import {
   getContactFromAddress,
   isContactEmailConfigured,
 } from "@/lib/contact/config";
-import {
-  buildTransactionalEmail,
-  hasStageEmailBeenSent,
-  markStageEmailSent,
-} from "@/lib/email/order-notifications";
+import { buildTransactionalEmail } from "@/lib/email/order-notifications";
 import { getRoastifyOrder } from "@/lib/roastify/client";
 import { getRoastifyOrderTracking } from "@/lib/roastify/parse-order";
 import {
@@ -16,16 +12,29 @@ import {
   getStageEmailCopy,
   type RoastifyStageEmailStage,
 } from "@/lib/roastify/stage-emails";
-import { syncRoastifyMetadataToStripe } from "@/lib/roastify/sync-stripe-metadata";
+import type { OrderRecord } from "@/lib/orders/types";
 import type { RoastifyOrderDetail } from "@/lib/roastify/types";
-import { getStripe } from "@/lib/stripe/server";
 
-function readCustomerEmail(order: RoastifyOrderDetail): string | undefined {
-  return order.toAddress?.email?.trim().toLowerCase() || undefined;
+function readCustomerEmail(
+  orderRecord: OrderRecord | undefined,
+  roastifyOrder: RoastifyOrderDetail
+): string | undefined {
+  return (
+    orderRecord?.customer_email?.trim().toLowerCase() ||
+    roastifyOrder.toAddress?.email?.trim().toLowerCase() ||
+    undefined
+  );
 }
 
-function readCustomerName(order: RoastifyOrderDetail): string {
-  return order.toAddress?.name?.trim() || "there";
+function readCustomerName(
+  orderRecord: OrderRecord | undefined,
+  roastifyOrder: RoastifyOrderDetail
+): string {
+  return (
+    orderRecord?.customer_name?.trim() ||
+    roastifyOrder.toAddress?.name?.trim() ||
+    "there"
+  );
 }
 
 export async function sendOrderStageUpdateEmail(input: {
@@ -33,6 +42,7 @@ export async function sendOrderStageUpdateEmail(input: {
   stage: RoastifyStageEmailStage;
   webhookId?: string;
   roastifyOrder?: RoastifyOrderDetail;
+  orderRecord?: OrderRecord;
   paymentIntent?: Stripe.PaymentIntent | null;
 }): Promise<"sent" | "skipped" | "failed"> {
   if (!isContactEmailConfigured()) {
@@ -42,25 +52,18 @@ export async function sendOrderStageUpdateEmail(input: {
     return "skipped";
   }
 
-  const paymentIntent = input.paymentIntent ?? null;
-
   if (
     input.stage === "created" &&
-    paymentIntent?.metadata?.ritl_confirmation_email_sent === "true"
+    (input.orderRecord?.confirmation_email_sent_at ||
+      input.paymentIntent?.metadata?.ritl_confirmation_email_sent === "true")
   ) {
-    await markStageEmailSent({
-      roastifyOrderId: input.roastifyOrderId,
-      stage: input.stage,
-      webhookId: input.webhookId,
-      paymentIntent,
-    });
     return "skipped";
   }
 
-  let order = input.roastifyOrder;
-  if (!order) {
+  let roastifyOrder = input.roastifyOrder;
+  if (!roastifyOrder) {
     try {
-      order = await getRoastifyOrder(input.roastifyOrderId);
+      roastifyOrder = await getRoastifyOrder(input.roastifyOrderId);
     } catch (error) {
       console.error(
         `Order stage email failed: Roastify lookup for ${input.roastifyOrderId}`,
@@ -70,7 +73,7 @@ export async function sendOrderStageUpdateEmail(input: {
     }
   }
 
-  const recipientEmail = readCustomerEmail(order);
+  const recipientEmail = readCustomerEmail(input.orderRecord, roastifyOrder);
   if (!recipientEmail) {
     console.warn(
       `Order stage email skipped for ${input.roastifyOrderId}: no customer email`
@@ -78,51 +81,33 @@ export async function sendOrderStageUpdateEmail(input: {
     return "skipped";
   }
 
-  const alreadySent = await hasStageEmailBeenSent({
-    roastifyOrderId: input.roastifyOrderId,
-    stage: input.stage,
-    customerEmail: recipientEmail,
-    paymentIntent,
-  });
-
-  if (alreadySent && input.stage !== "tracking") {
-    if (input.webhookId) {
-      await markStageEmailSent({
-        roastifyOrderId: input.roastifyOrderId,
-        stage: input.stage,
-        customerEmail: recipientEmail,
-        webhookId: input.webhookId,
-        paymentIntent,
-      });
-    }
+  if (
+    input.orderRecord &&
+    input.orderRecord.stage_emails_sent
+      .map((entry) => entry.toLowerCase())
+      .includes(input.stage.toLowerCase()) &&
+    input.stage !== "tracking"
+  ) {
     return "skipped";
   }
 
-  if (paymentIntent) {
-    try {
-      await syncRoastifyMetadataToStripe(paymentIntent, order, {
-        notifyCustomer: false,
-      });
-    } catch (error) {
-      console.error(
-        `Stripe metadata sync failed for Roastify order ${input.roastifyOrderId}`,
-        error
-      );
-    }
-  }
-
-  const tracking = getRoastifyOrderTracking(order);
+  const tracking = getRoastifyOrderTracking(roastifyOrder);
   const copy = getStageEmailCopy(input.stage);
-  const orderReference = paymentIntent?.id ?? input.roastifyOrderId;
+  const orderReference =
+    input.orderRecord?.stripe_payment_intent_id ??
+    input.paymentIntent?.id ??
+    input.roastifyOrderId;
+
   const { text, html } = buildTransactionalEmail({
     headline: copy.headline,
     body: copy.body,
-    customerName: readCustomerName(order),
+    customerName: readCustomerName(input.orderRecord, roastifyOrder),
     orderReference,
     stageLabel: formatStageLabel(input.stage),
-    trackingNumber: tracking.trackingNumber,
-    trackingUrl: tracking.trackingUrl,
-    carrier: tracking.carrier,
+    trackingNumber:
+      tracking.trackingNumber ?? input.orderRecord?.tracking_number ?? undefined,
+    trackingUrl: tracking.trackingUrl ?? input.orderRecord?.tracking_url ?? undefined,
+    carrier: tracking.carrier ?? input.orderRecord?.carrier ?? undefined,
   });
 
   const resend = new Resend(process.env.RESEND_API_KEY);
@@ -140,27 +125,6 @@ export async function sendOrderStageUpdateEmail(input: {
       error.message
     );
     return "failed";
-  }
-
-  await markStageEmailSent({
-    roastifyOrderId: input.roastifyOrderId,
-    stage: input.stage,
-    customerEmail: recipientEmail,
-    webhookId: input.webhookId,
-    paymentIntent,
-  });
-
-  if (paymentIntent && input.stage === "shipped" && tracking.trackingNumber) {
-    const stripe = getStripe();
-    const fullPaymentIntent = await stripe.paymentIntents.retrieve(
-      paymentIntent.id
-    );
-    await stripe.paymentIntents.update(paymentIntent.id, {
-      metadata: {
-        ...fullPaymentIntent.metadata,
-        ritl_shipping_email_sent: "true",
-      },
-    });
   }
 
   console.info(

@@ -13,6 +13,7 @@ import {
   getProductPriceLabel,
   type PurchaseType,
 } from "@/lib/stripe/products";
+import { markOrderConfirmationEmailSent } from "@/lib/orders/repository";
 import { getStripe } from "@/lib/stripe/server";
 
 function formatPurchaseTypeLabel(purchaseType: PurchaseType): string {
@@ -184,6 +185,12 @@ export async function sendOrderConfirmationEmail(
       ritl_confirmation_email_sent: "true",
     },
   });
+
+  try {
+    await markOrderConfirmationEmailSent(fullPaymentIntent.id);
+  } catch (error) {
+    console.error("Failed to mark confirmation email in orders database:", error);
+  }
 
   console.info(
     `Order confirmation email sent for payment ${fullPaymentIntent.id} to ${recipientEmail}`

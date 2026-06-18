@@ -10,6 +10,9 @@ import {
 import type { RoastifyOrderDetail } from "@/lib/roastify/types";
 import { syncRoastifyMetadataToStripe } from "@/lib/roastify/sync-stripe-metadata";
 import type { AdminOrderType } from "@/lib/admin/format";
+import { listOrders, getOrderById } from "@/lib/orders/repository";
+import { orderRecordToAdminDetail, orderRecordToAdminRow } from "@/lib/orders/to-admin";
+import { isOrdersDatabaseConfigured } from "@/lib/supabase/config";
 import type { PurchaseType } from "@/lib/stripe/products";
 import { getProduct } from "@/lib/stripe/products";
 import { isStripeSecretConfigured } from "@/lib/stripe/config";
@@ -513,6 +516,39 @@ async function listAllPaymentIntents(): Promise<Stripe.PaymentIntent[]> {
 export async function listAdminOrders(
   options: ListAdminOrdersOptions = {}
 ): Promise<AdminOrdersListResult> {
+  const page = normalizeOrderPage(options.page);
+  const pageSize = normalizeOrderPageSize(options.pageSize);
+  const sortBy = normalizeOrderSortField(options.sortBy);
+  const sortDir = normalizeOrderSortDirection(options.sortDir);
+
+  if (isOrdersDatabaseConfigured()) {
+    try {
+      const { orders, total } = await listOrders({
+        query: options.query,
+        page,
+        pageSize,
+        sortBy,
+        sortDir,
+        source: "website",
+      });
+
+      const totalPages = total === 0 ? 0 : Math.ceil(total / pageSize);
+      const currentPage = totalPages === 0 ? 1 : Math.min(page, totalPages);
+
+      return {
+        orders: orders.map(orderRecordToAdminRow),
+        total,
+        page: currentPage,
+        pageSize,
+        totalPages,
+        sortBy,
+        sortDir,
+      };
+    } catch (error) {
+      console.error("Supabase orders list failed, falling back to Stripe:", error);
+    }
+  }
+
   if (!isStripeSecretConfigured()) {
     return {
       orders: [],
@@ -524,11 +560,6 @@ export async function listAdminOrders(
       sortDir: DEFAULT_ADMIN_ORDER_SORT_DIRECTION,
     };
   }
-
-  const page = normalizeOrderPage(options.page);
-  const pageSize = normalizeOrderPageSize(options.pageSize);
-  const sortBy = normalizeOrderSortField(options.sortBy);
-  const sortDir = normalizeOrderSortDirection(options.sortDir);
 
   const paymentIntents = await listAllPaymentIntents();
   const allOrders = await buildAdminOrdersFromPaymentIntents(paymentIntents);
@@ -552,6 +583,17 @@ export async function listAdminOrders(
 }
 
 export async function getAdminOrder(orderId: string): Promise<AdminOrderDetail | null> {
+  if (isOrdersDatabaseConfigured()) {
+    try {
+      const order = await getOrderById(orderId);
+      if (order) {
+        return orderRecordToAdminDetail(order);
+      }
+    } catch (error) {
+      console.error("Supabase order lookup failed, falling back to Stripe:", error);
+    }
+  }
+
   if (!isStripeSecretConfigured()) {
     return null;
   }

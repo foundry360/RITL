@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Webhook } from "svix";
-import { sendOrderStageUpdateEmail } from "@/lib/email/send-order-stage-update";
+import { applyRoastifyWebhookUpdate } from "@/lib/orders/repository";
 import { getRoastifyOrder } from "@/lib/roastify/client";
+import {
+  getRoastifyOrderStatus,
+  getRoastifyOrderTracking,
+} from "@/lib/roastify/parse-order";
 import {
   parseRoastifyWebhookPayload,
   resolveStageFromWebhookEvent,
 } from "@/lib/roastify/stage-emails";
+import { sendOrderStageUpdateEmail } from "@/lib/email/send-order-stage-update";
+import { isOrdersDatabaseConfigured } from "@/lib/supabase/config";
 import {
   findPaymentIntentByRoastifyOrderId,
   syncRoastifyMetadataToStripe,
@@ -13,6 +19,25 @@ import {
 
 function getWebhookSecret(): string | undefined {
   return process.env.ROASTIFY_WEBHOOK_SECRET?.trim();
+}
+
+function formatShippingAddress(
+  order: Awaited<ReturnType<typeof getRoastifyOrder>>
+): string | undefined {
+  const address = order.toAddress;
+  if (!address?.street1) {
+    return undefined;
+  }
+
+  return [
+    address.name,
+    address.street1,
+    address.street2,
+    [address.city, address.state, address.zip].filter(Boolean).join(", "),
+    address.country,
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 export async function POST(request: NextRequest) {
@@ -65,18 +90,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true, skipped: "missing_order_id" });
   }
 
-  if (orderId) {
-    const paymentIntent = await findPaymentIntentByRoastifyOrderId(orderId);
-    const processedIds =
-      paymentIntent?.metadata?.ritl_webhook_ids_processed
-        ?.split(",")
-        .filter(Boolean) ?? [];
-
-    if (processedIds.includes(svixId)) {
-      return NextResponse.json({ ok: true, duplicate: true });
-    }
-  }
-
   let roastifyOrder;
   try {
     roastifyOrder = await getRoastifyOrder(orderId);
@@ -86,6 +99,39 @@ export async function POST(request: NextRequest) {
       { error: "Failed to load order from Roastify" },
       { status: 502 }
     );
+  }
+
+  const tracking = getRoastifyOrderTracking(roastifyOrder);
+  const fulfillmentStatus = getRoastifyOrderStatus(roastifyOrder);
+
+  if (isOrdersDatabaseConfigured()) {
+    const result = await applyRoastifyWebhookUpdate({
+      roastifyOrderId: orderId,
+      eventType,
+      webhookId: svixId,
+      fulfillmentStatus,
+      trackingNumber: tracking.trackingNumber,
+      trackingUrl: tracking.trackingUrl,
+      carrier: tracking.carrier,
+      roastifyUpdatedAt: roastifyOrder.updatedAt,
+      customerName: roastifyOrder.toAddress?.name ?? undefined,
+      customerEmail: roastifyOrder.toAddress?.email ?? undefined,
+      shippingAddress: formatShippingAddress(roastifyOrder),
+    });
+
+    console.info(
+      `Roastify webhook ${eventType} for ${orderId}: db email=${result.email} duplicate=${result.duplicate}`
+    );
+
+    return NextResponse.json({
+      ok: true,
+      eventType,
+      stage: result.stage,
+      orderId,
+      email: result.email,
+      duplicate: result.duplicate,
+      storage: "supabase",
+    });
   }
 
   const paymentIntent = await findPaymentIntentByRoastifyOrderId(orderId);
@@ -103,7 +149,7 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  const result = await sendOrderStageUpdateEmail({
+  const email = await sendOrderStageUpdateEmail({
     roastifyOrderId: orderId,
     stage,
     webhookId: svixId,
@@ -111,15 +157,13 @@ export async function POST(request: NextRequest) {
     paymentIntent,
   });
 
-  console.info(
-    `Roastify webhook ${eventType} for ${orderId}: email=${result} (svix-id ${svixId})`
-  );
-
   return NextResponse.json({
     ok: true,
     eventType,
     stage,
     orderId,
-    email: result,
+    email,
+    storage: "stripe_metadata_only",
+    warning: "SUPABASE_SERVICE_ROLE_KEY not configured; order not stored in database",
   });
 }

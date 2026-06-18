@@ -3,6 +3,9 @@ import { isRoastifyConfigured } from "@/lib/roastify/config";
 import { buildRoastifyOrder } from "@/lib/roastify/build-order";
 import { createRoastifyOrder } from "@/lib/roastify/client";
 import { resolveFulfillmentOrder } from "@/lib/roastify/resolve-fulfillment-order";
+import { linkRoastifyOrderToWebsiteOrder, upsertWebsiteOrder } from "@/lib/orders/repository";
+import { buildWebsiteOrderInput } from "@/lib/orders/from-stripe";
+import { isOrdersDatabaseConfigured } from "@/lib/supabase/config";
 import { getStripe } from "@/lib/stripe/server";
 
 export async function submitRoastifyFulfillment(
@@ -43,6 +46,29 @@ export async function submitRoastifyFulfillment(
       ritl_fulfillment_status: response.status ?? "created",
     },
   });
+
+  if (isOrdersDatabaseConfigured()) {
+    try {
+      const orderInput = await buildWebsiteOrderInput(fullPaymentIntent, {
+        roastifyOrderId: response.orderId,
+        fulfillmentStatus: response.status ?? "created",
+      });
+      if (orderInput) {
+        await upsertWebsiteOrder(orderInput);
+      } else {
+        await linkRoastifyOrderToWebsiteOrder({
+          stripePaymentIntentId: fullPaymentIntent.id,
+          roastifyOrderId: response.orderId,
+          fulfillmentStatus: response.status ?? "created",
+        });
+      }
+    } catch (error) {
+      console.error(
+        `Failed to persist Roastify order link for ${fullPaymentIntent.id}:`,
+        error
+      );
+    }
+  }
 
   console.info(
     `Roastify order ${response.orderId} created for payment ${fullPaymentIntent.id}`

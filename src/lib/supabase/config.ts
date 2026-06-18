@@ -21,6 +21,25 @@ export function getSupabaseAnonKey(): string {
   return key;
 }
 
+export function isSupabaseServiceConfigured(): boolean {
+  return Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() &&
+      process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
+  );
+}
+
+export function getSupabaseServiceRoleKey(): string {
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+  if (!key) {
+    throw new Error("SUPABASE_SERVICE_ROLE_KEY is not configured");
+  }
+  return key;
+}
+
+export function isOrdersDatabaseConfigured(): boolean {
+  return isSupabaseServiceConfigured();
+}
+
 export function getAllowedAdminEmailDomains(): string[] {
   const raw = process.env.ADMIN_ALLOWED_EMAIL_DOMAINS?.trim();
   if (!raw) {
