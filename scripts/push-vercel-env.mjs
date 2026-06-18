@@ -27,6 +27,7 @@ const SENSITIVE_KEYS = new Set([
   "SALESFORCE_CLIENT_SECRET",
   "SALESFORCE_REFRESH_TOKEN",
   "SUPABASE_SERVICE_ROLE_KEY",
+  "CRON_SECRET",
 ]);
 
 function parseEnvFile(filePath) {

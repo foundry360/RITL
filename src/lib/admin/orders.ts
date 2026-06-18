@@ -10,7 +10,7 @@ import {
 import type { RoastifyOrderDetail } from "@/lib/roastify/types";
 import { syncRoastifyMetadataToStripe } from "@/lib/roastify/sync-stripe-metadata";
 import type { AdminOrderType } from "@/lib/admin/format";
-import { listOrders, getOrderById } from "@/lib/orders/repository";
+import { listOrders, getOrderById, syncOrdersFromRoastify, syncOrderFulfillmentFromRoastify } from "@/lib/orders/repository";
 import { orderRecordToAdminDetail, orderRecordToAdminRow } from "@/lib/orders/to-admin";
 import { isOrdersDatabaseConfigured } from "@/lib/supabase/config";
 import type { PurchaseType } from "@/lib/stripe/products";
@@ -532,11 +532,13 @@ export async function listAdminOrders(
         source: "website",
       });
 
+      const syncedOrders = await syncOrdersFromRoastify(orders);
+
       const totalPages = total === 0 ? 0 : Math.ceil(total / pageSize);
       const currentPage = totalPages === 0 ? 1 : Math.min(page, totalPages);
 
       return {
-        orders: orders.map(orderRecordToAdminRow),
+        orders: syncedOrders.map(orderRecordToAdminRow),
         total,
         page: currentPage,
         pageSize,
@@ -587,6 +589,16 @@ export async function getAdminOrder(orderId: string): Promise<AdminOrderDetail |
     try {
       const order = await getOrderById(orderId);
       if (order) {
+        if (order.roastify_order_id && isRoastifyConfigured()) {
+          try {
+            const roastifyOrder = await getRoastifyOrder(order.roastify_order_id);
+            const synced = await syncOrderFulfillmentFromRoastify(order, roastifyOrder);
+            return orderRecordToAdminDetail(synced.order);
+          } catch (error) {
+            console.error(`Roastify sync failed for order ${orderId}:`, error);
+          }
+        }
+
         return orderRecordToAdminDetail(order);
       }
     } catch (error) {

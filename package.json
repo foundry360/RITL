@@ -17,6 +17,7 @@
     "roastify:webhook:verify": "node scripts/verify-roastify-webhook.mjs",
     "orders:backfill": "node scripts/backfill-orders.mjs",
     "orders:migrate": "node scripts/apply-orders-migration.mjs",
+    "orders:sync": "npx tsx scripts/sync-orders-fulfillment.ts",
     "salesforce:authorize": "node scripts/salesforce-authorize.mjs",
     "salesforce:verify": "node scripts/verify-salesforce.mjs"
   },

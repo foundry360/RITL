@@ -1,6 +1,18 @@
 import { sendOrderStageUpdateEmail } from "@/lib/email/send-order-stage-update";
 import type { AdminOrderType } from "@/lib/admin/format";
 import type { FulfillmentLineItem } from "@/lib/fulfillment/types";
+import { getRoastifyOrder } from "@/lib/roastify/client";
+import { isRoastifyConfigured } from "@/lib/roastify/config";
+import {
+  getRoastifyOrderStatus,
+  getRoastifyOrderTracking,
+} from "@/lib/roastify/parse-order";
+import type { RoastifyOrderDetail } from "@/lib/roastify/types";
+import {
+  normalizeFulfillmentStatus,
+  resolveForwardFulfillmentStatus,
+  shouldAdvanceFulfillmentStatus,
+} from "@/lib/roastify/status";
 import {
   mapRoastifyStatusToStage,
   resolveStageFromWebhookEvent,
@@ -19,8 +31,7 @@ const ORDERS_TABLE = "orders";
 const MAX_WEBHOOK_IDS = 20;
 
 function normalizeStatus(value?: string | null): string | undefined {
-  const normalized = value?.trim().toLowerCase();
-  return normalized || undefined;
+  return normalizeFulfillmentStatus(value);
 }
 
 function parseItems(value: unknown): FulfillmentLineItem[] {
@@ -128,11 +139,6 @@ async function sendStageEmailForOrder(
   stage: RoastifyStageEmailStage,
   webhookId?: string
 ): Promise<"sent" | "skipped" | "failed"> {
-  if (stage === "created" && order.confirmation_email_sent_at) {
-    await markStageEmailSentInDatabase(order.id, stage, webhookId, order);
-    return "skipped";
-  }
-
   if (hasStageBeenSent(order, stage) && stage !== "tracking") {
     if (webhookId) {
       await markStageEmailSentInDatabase(order.id, stage, webhookId, order);
@@ -147,7 +153,7 @@ async function sendStageEmailForOrder(
     orderRecord: order,
   });
 
-  if (result === "sent" || result === "skipped") {
+  if (result === "sent") {
     await markStageEmailSentInDatabase(order.id, stage, webhookId, order);
   }
 
@@ -174,7 +180,7 @@ export async function upsertWebsiteOrder(
     shipping_address: input.shippingAddress ?? null,
     items: input.items,
     roastify_order_id: input.roastifyOrderId ?? null,
-    fulfillment_status: input.fulfillmentStatus ?? null,
+    fulfillment_status: normalizeStatus(input.fulfillmentStatus) ?? null,
     confirmation_email_sent_at: input.confirmationEmailSent
       ? new Date().toISOString()
       : null,
@@ -221,7 +227,7 @@ export async function linkRoastifyOrderToWebsiteOrder(input: {
     .from(ORDERS_TABLE)
     .update({
       roastify_order_id: input.roastifyOrderId,
-      fulfillment_status: input.fulfillmentStatus ?? "created",
+      fulfillment_status: normalizeStatus(input.fulfillmentStatus) ?? "created",
     })
     .eq("stripe_payment_intent_id", input.stripePaymentIntentId)
     .select("*")
@@ -300,7 +306,7 @@ export async function applyRoastifyWebhookUpdate(
         customer_name: input.customerName ?? null,
         customer_email: input.customerEmail ?? null,
         shipping_address: input.shippingAddress ?? null,
-        fulfillment_status: input.fulfillmentStatus ?? null,
+        fulfillment_status: normalizeStatus(input.fulfillmentStatus) ?? null,
         tracking_number: input.trackingNumber ?? null,
         tracking_url: input.trackingUrl ?? null,
         carrier: input.carrier ?? null,
@@ -326,12 +332,15 @@ export async function applyRoastifyWebhookUpdate(
   }
 
   const previousStatus = normalizeStatus(order.fulfillment_status);
-  const nextStatus = normalizeStatus(input.fulfillmentStatus) ?? previousStatus;
+  const storedStatus =
+    resolveForwardFulfillmentStatus(previousStatus, input.fulfillmentStatus) ??
+    previousStatus;
+  const statusAdvanced = Boolean(storedStatus && storedStatus !== previousStatus);
 
   const { data, error } = await supabase
     .from(ORDERS_TABLE)
     .update({
-      fulfillment_status: input.fulfillmentStatus ?? order.fulfillment_status,
+      fulfillment_status: storedStatus ?? order.fulfillment_status,
       tracking_number: input.trackingNumber ?? order.tracking_number,
       tracking_url: input.trackingUrl ?? order.tracking_url,
       carrier: input.carrier ?? order.carrier,
@@ -354,8 +363,8 @@ export async function applyRoastifyWebhookUpdate(
   const updatedOrder = mapRow(data);
   const eventStage = resolveStageFromWebhookEvent(input.eventType);
   const statusStage =
-    nextStatus && nextStatus !== previousStatus
-      ? mapRoastifyStatusToStage(nextStatus)
+    statusAdvanced && storedStatus
+      ? mapRoastifyStatusToStage(storedStatus)
       : null;
   const stage = eventStage ?? statusStage;
 
@@ -379,6 +388,211 @@ export async function applyRoastifyWebhookUpdate(
     stage,
     email,
     duplicate: false,
+  };
+}
+
+export interface SyncOrderFulfillmentResult {
+  order: OrderRecord;
+  stage: RoastifyStageEmailStage | null;
+  email: "sent" | "skipped" | "failed" | "not_applicable";
+  statusChanged: boolean;
+}
+
+export async function syncOrderFulfillmentFromRoastify(
+  order: OrderRecord,
+  roastifyOrder: RoastifyOrderDetail
+): Promise<SyncOrderFulfillmentResult> {
+  const roastifyStatus = getRoastifyOrderStatus(roastifyOrder);
+  const tracking = getRoastifyOrderTracking(roastifyOrder);
+  const previousStatus = normalizeStatus(order.fulfillment_status);
+  const incomingStatus = normalizeStatus(roastifyStatus);
+  const storedStatus =
+    resolveForwardFulfillmentStatus(previousStatus, incomingStatus) ??
+    previousStatus;
+  const statusAdvanced = Boolean(
+    storedStatus && storedStatus !== previousStatus
+  );
+
+  const trackingChanged =
+    (tracking.trackingNumber ?? null) !== (order.tracking_number ?? null) ||
+    (tracking.trackingUrl ?? null) !== (order.tracking_url ?? null) ||
+    (tracking.carrier ?? null) !== (order.carrier ?? null);
+  const roastifyUpdatedAt = roastifyOrder.updatedAt ?? null;
+  const roastifyTimestampChanged =
+    roastifyUpdatedAt !== (order.roastify_updated_at ?? null);
+  const ignoredStaleStatus =
+    Boolean(
+      incomingStatus &&
+        previousStatus &&
+        incomingStatus !== previousStatus &&
+        !shouldAdvanceFulfillmentStatus(previousStatus, incomingStatus)
+    );
+
+  if (ignoredStaleStatus) {
+    console.warn(
+      `Ignoring stale Roastify status "${incomingStatus}" for order ${order.id}; keeping "${previousStatus}"`
+    );
+  }
+
+  let currentOrder = order;
+
+  if (
+    statusAdvanced ||
+    trackingChanged ||
+    (roastifyTimestampChanged && !ignoredStaleStatus)
+  ) {
+    const supabase = createSupabaseServiceClient();
+    const { data, error } = await supabase
+      .from(ORDERS_TABLE)
+      .update({
+        fulfillment_status: storedStatus ?? order.fulfillment_status,
+        tracking_number: tracking.trackingNumber ?? order.tracking_number,
+        tracking_url: tracking.trackingUrl ?? order.tracking_url,
+        carrier: tracking.carrier ?? order.carrier,
+        roastify_updated_at: roastifyUpdatedAt ?? order.roastify_updated_at,
+        customer_name: roastifyOrder.toAddress?.name ?? order.customer_name,
+        customer_email: roastifyOrder.toAddress?.email ?? order.customer_email,
+      })
+      .eq("id", order.id)
+      .select("*")
+      .single();
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    currentOrder = mapRow(data);
+  }
+
+  if (!statusAdvanced || !storedStatus) {
+    return {
+      order: currentOrder,
+      stage: null,
+      email: "not_applicable",
+      statusChanged: false,
+    };
+  }
+
+  const stage = mapRoastifyStatusToStage(storedStatus);
+  if (!stage) {
+    return {
+      order: currentOrder,
+      stage: null,
+      email: "not_applicable",
+      statusChanged: true,
+    };
+  }
+
+  const email = await sendStageEmailForOrder(currentOrder, stage);
+
+  if (email === "sent") {
+    console.info(
+      `Fulfillment sync sent ${stage} email for order ${currentOrder.id} (${currentOrder.roastify_order_id})`
+    );
+  }
+
+  const refreshed = await getOrderById(currentOrder.id);
+
+  return {
+    order: refreshed ?? currentOrder,
+    stage,
+    email,
+    statusChanged: true,
+  };
+}
+
+export async function syncOrdersFromRoastify(
+  orders: OrderRecord[]
+): Promise<OrderRecord[]> {
+  if (!isRoastifyConfigured() || orders.length === 0) {
+    return orders;
+  }
+
+  return Promise.all(
+    orders.map(async (order) => {
+      if (!order.roastify_order_id) {
+        return order;
+      }
+
+      try {
+        const roastifyOrder = await getRoastifyOrder(order.roastify_order_id);
+        const result = await syncOrderFulfillmentFromRoastify(order, roastifyOrder);
+        return result.order;
+      } catch (error) {
+        console.error(`Roastify sync failed for order ${order.id}:`, error);
+        return order;
+      }
+    })
+  );
+}
+
+export async function syncActiveWebsiteOrdersFromRoastify(options?: {
+  limit?: number;
+}): Promise<{
+  checked: number;
+  statusChanges: number;
+  emailsSent: number;
+  errors: number;
+}> {
+  if (!isOrdersDatabaseConfigured() || !isRoastifyConfigured()) {
+    return { checked: 0, statusChanges: 0, emailsSent: 0, errors: 0 };
+  }
+
+  const supabase = createSupabaseServiceClient();
+  const limit = options?.limit ?? 50;
+  const { data, error } = await supabase
+    .from(ORDERS_TABLE)
+    .select("*")
+    .eq("source", "website")
+    .not("roastify_order_id", "is", null)
+    .order("updated_at", { ascending: false })
+    .limit(limit * 3);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const activeStatuses = new Set(["created", "picked", "printed", "packaged"]);
+  const orders = (data ?? [])
+    .map((row) => mapRow(row))
+    .filter((order) => {
+      const status = normalizeStatus(order.fulfillment_status);
+      return status ? activeStatuses.has(status) : false;
+    })
+    .slice(0, limit);
+
+  let statusChanges = 0;
+  let emailsSent = 0;
+  let errors = 0;
+
+  for (const order of orders) {
+    if (!order.roastify_order_id) {
+      continue;
+    }
+
+    try {
+      const roastifyOrder = await getRoastifyOrder(order.roastify_order_id);
+      const result = await syncOrderFulfillmentFromRoastify(order, roastifyOrder);
+      if (result.statusChanged) {
+        statusChanges += 1;
+      }
+      if (result.email === "sent") {
+        emailsSent += 1;
+      }
+    } catch (syncError) {
+      errors += 1;
+      console.error(
+        `Active order sync failed for ${order.roastify_order_id}:`,
+        syncError
+      );
+    }
+  }
+
+  return {
+    checked: orders.length,
+    statusChanges,
+    emailsSent,
+    errors,
   };
 }
 

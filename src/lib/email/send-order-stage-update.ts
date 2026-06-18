@@ -52,14 +52,6 @@ export async function sendOrderStageUpdateEmail(input: {
     return "skipped";
   }
 
-  if (
-    input.stage === "created" &&
-    (input.orderRecord?.confirmation_email_sent_at ||
-      input.paymentIntent?.metadata?.ritl_confirmation_email_sent === "true")
-  ) {
-    return "skipped";
-  }
-
   let roastifyOrder = input.roastifyOrder;
   if (!roastifyOrder) {
     try {
