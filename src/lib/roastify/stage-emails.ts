@@ -77,6 +77,27 @@ const STAGE_COPY: Record<
   },
 };
 
+export function mapRoastifyStatusToStage(
+  status?: string | null
+): RoastifyStageEmailStage | null {
+  const normalized = status?.trim().toLowerCase();
+  if (!normalized) {
+    return null;
+  }
+
+  const statusToStage: Record<string, RoastifyStageEmailStage> = {
+    created: "created",
+    picked: "picked",
+    printed: "printed",
+    packaged: "packaged",
+    shipped: "shipped",
+    canceled: "canceled",
+    cancelled: "canceled",
+  };
+
+  return statusToStage[normalized] ?? null;
+}
+
 export function resolveStageFromWebhookEvent(
   eventType: string
 ): RoastifyStageEmailStage | null {
@@ -100,17 +121,29 @@ export function parseRoastifyWebhookPayload(payload: unknown): {
       ? (payload as Record<string, unknown>)
       : {};
 
-  const eventType =
-    (typeof record.type === "string" && record.type) ||
-    (typeof record.event === "string" && record.event) ||
-    "";
-
   const data =
     record.data && typeof record.data === "object"
       ? (record.data as Record<string, unknown>)
       : record;
 
+  const eventType =
+    (typeof record.type === "string" && record.type) ||
+    (typeof record.event === "string" && record.event) ||
+    (typeof record.eventType === "string" && record.eventType) ||
+    (typeof record.event_type === "string" && record.event_type) ||
+    (typeof data.type === "string" && data.type) ||
+    (typeof data.event === "string" && data.event) ||
+    "";
+
+  const nestedData =
+    data.data && typeof data.data === "object"
+      ? (data.data as Record<string, unknown>)
+      : data;
+
   const orderId =
+    (typeof nestedData.orderId === "string" && nestedData.orderId) ||
+    (typeof nestedData.order_id === "string" && nestedData.order_id) ||
+    (typeof nestedData.id === "string" && nestedData.id) ||
     (typeof data.orderId === "string" && data.orderId) ||
     (typeof data.order_id === "string" && data.order_id) ||
     (typeof data.id === "string" && data.id) ||

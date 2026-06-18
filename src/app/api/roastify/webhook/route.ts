@@ -91,7 +91,10 @@ export async function POST(request: NextRequest) {
   const paymentIntent = await findPaymentIntentByRoastifyOrderId(orderId);
   if (paymentIntent) {
     try {
-      await syncRoastifyMetadataToStripe(paymentIntent, roastifyOrder);
+      await syncRoastifyMetadataToStripe(paymentIntent, roastifyOrder, {
+        notifyCustomer: false,
+        webhookId: svixId,
+      });
     } catch (error) {
       console.error(
         `Stripe metadata sync failed for Roastify order ${orderId}:`,
@@ -106,6 +109,10 @@ export async function POST(request: NextRequest) {
     webhookId: svixId,
     roastifyOrder,
   });
+
+  console.info(
+    `Roastify webhook ${eventType} for ${orderId}: email=${result} (svix-id ${svixId})`
+  );
 
   return NextResponse.json({
     ok: true,

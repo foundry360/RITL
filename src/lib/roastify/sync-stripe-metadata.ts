@@ -1,11 +1,35 @@
 import type Stripe from "stripe";
+import { sendOrderStageUpdateEmail } from "@/lib/email/send-order-stage-update";
 import {
   getRoastifyOrderStatus,
   getRoastifyOrderTracking,
 } from "@/lib/roastify/parse-order";
+import { mapRoastifyStatusToStage } from "@/lib/roastify/stage-emails";
 import type { RoastifyOrderDetail } from "@/lib/roastify/types";
 import { isStripeSecretConfigured } from "@/lib/stripe/config";
 import { getStripe } from "@/lib/stripe/server";
+
+export interface SyncRoastifyMetadataOptions {
+  notifyCustomer?: boolean;
+  webhookId?: string;
+}
+
+export async function notifyRoastifyStageEmailIfNeeded(
+  roastifyOrder: RoastifyOrderDetail,
+  options?: Pick<SyncRoastifyMetadataOptions, "webhookId">
+): Promise<"sent" | "skipped" | "failed" | "not_applicable"> {
+  const stage = mapRoastifyStatusToStage(getRoastifyOrderStatus(roastifyOrder));
+  if (!stage) {
+    return "not_applicable";
+  }
+
+  return sendOrderStageUpdateEmail({
+    roastifyOrderId: roastifyOrder.orderId,
+    stage,
+    roastifyOrder,
+    webhookId: options?.webhookId,
+  });
+}
 
 export async function findPaymentIntentByRoastifyOrderId(
   roastifyOrderId: string
@@ -26,7 +50,8 @@ export async function findPaymentIntentByRoastifyOrderId(
 
 export async function syncRoastifyMetadataToStripe(
   paymentIntent: Stripe.PaymentIntent,
-  roastifyOrder: RoastifyOrderDetail
+  roastifyOrder: RoastifyOrderDetail,
+  options?: SyncRoastifyMetadataOptions
 ): Promise<void> {
   const roastifyStatus = getRoastifyOrderStatus(roastifyOrder);
   if (!roastifyStatus) {
@@ -63,15 +88,33 @@ export async function syncRoastifyMetadataToStripe(
     updates.ritl_carrier = tracking.carrier;
   }
 
-  if (Object.keys(updates).length === 0) {
+  if (Object.keys(updates).length > 0) {
+    const stripe = getStripe();
+    await stripe.paymentIntents.update(paymentIntent.id, {
+      metadata: {
+        ...metadata,
+        ...updates,
+      },
+    });
+  }
+
+  if (options?.notifyCustomer === false) {
     return;
   }
 
-  const stripe = getStripe();
-  await stripe.paymentIntents.update(paymentIntent.id, {
-    metadata: {
-      ...metadata,
-      ...updates,
-    },
-  });
+  try {
+    const emailResult = await notifyRoastifyStageEmailIfNeeded(roastifyOrder, {
+      webhookId: options?.webhookId,
+    });
+    if (emailResult === "sent") {
+      console.info(
+        `Stage email sent during Roastify sync for order ${roastifyOrder.orderId}`
+      );
+    }
+  } catch (error) {
+    console.error(
+      `Stage email failed during Roastify sync for order ${roastifyOrder.orderId}:`,
+      error
+    );
+  }
 }
