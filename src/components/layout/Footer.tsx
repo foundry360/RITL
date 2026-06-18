@@ -89,9 +89,17 @@ export function Footer() {
             <p className="text-xs text-text-muted tracking-wide">
               © {new Date().getFullYear()} RITL Coffee. All rights reserved.
             </p>
-            <p className="text-xs text-text-muted tracking-wide">
-              Ritual In The Loop (RITL)
-            </p>
+            <div className="flex items-center gap-4">
+              <Link
+                href="/admin/login"
+                className="text-xs text-text-muted tracking-wide transition-colors hover:text-text-primary"
+              >
+                Admin
+              </Link>
+              <p className="text-xs text-text-muted tracking-wide">
+                Ritual In The Loop (RITL)
+              </p>
+            </div>
           </div>
         </div>
       </div>

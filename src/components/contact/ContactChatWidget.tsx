@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Logo } from "@/components/layout/Logo";
 import { cn } from "@/lib/utils";
@@ -8,6 +9,7 @@ import { cn } from "@/lib/utils";
 type FormStatus = "idle" | "submitting" | "success" | "error";
 
 export function ContactChatWidget() {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -78,6 +80,10 @@ export function ContactChatWidget() {
       setStatus("idle");
       setErrorMessage(null);
     }
+  }
+
+  if (pathname?.startsWith("/admin")) {
+    return null;
   }
 
   return (

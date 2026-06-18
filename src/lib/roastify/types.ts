@@ -26,3 +26,63 @@ export interface RoastifyCreateOrderResponse {
   status?: string;
   createdAt?: string;
 }
+
+export interface RoastifyAddress {
+  name?: string | null;
+  company?: string | null;
+  street1?: string | null;
+  street2?: string | null;
+  city?: string | null;
+  state?: string | null;
+  country?: string | null;
+  zip?: string | null;
+  phone?: string | null;
+  email?: string | null;
+}
+
+export interface RoastifyOrderItemDetail {
+  sku?: string;
+  quantity?: number;
+  artworkUrl?: string | null;
+  externalSourceId?: string | null;
+}
+
+export interface RoastifyShippingLabel {
+  trackingNumber?: string | null;
+  trackingUrl?: string | null;
+  carrier?: string | null;
+  service?: string | null;
+  status?: string | null;
+}
+
+export interface RoastifyOrderDetail {
+  orderId: string;
+  createdAt?: string;
+  updatedAt?: string;
+  orderStatus?: string;
+  status?: string;
+  isTest?: boolean;
+  externalSourceId?: string | null;
+  toAddress?: RoastifyAddress;
+  returnAddress?: RoastifyAddress;
+  items?: RoastifyOrderItemDetail[];
+  shippingLabel?: RoastifyShippingLabel | null;
+  trackingNumber?: string | null;
+  trackingUrl?: string | null;
+  carrier?: string | null;
+}
+
+export interface RoastifyOrdersListResponse {
+  orders?: RoastifyOrderDetail[];
+  pageInfo?: {
+    endCursor?: string;
+    hasNextPage?: boolean;
+  };
+}
+
+export interface RoastifyOrderTracking {
+  trackingNumber?: string;
+  trackingUrl?: string;
+  carrier?: string;
+  trackingStatus?: string;
+}
