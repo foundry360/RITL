@@ -13,6 +13,8 @@
     "stripe:webhook:verify": "node scripts/verify-stripe-webhook.mjs",
     "vercel:env:push": "node scripts/push-vercel-env.mjs",
     "roastify:verify": "node scripts/verify-roastify.mjs",
+    "roastify:webhook:setup": "node scripts/setup-roastify-webhook.mjs",
+    "roastify:webhook:verify": "node scripts/verify-roastify-webhook.mjs",
     "salesforce:authorize": "node scripts/salesforce-authorize.mjs",
     "salesforce:verify": "node scripts/verify-salesforce.mjs"
   },
@@ -25,7 +27,8 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "resend": "^6.14.0",
-    "stripe": "^22.2.1"
+    "stripe": "^22.2.1",
+    "svix": "^1.96.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

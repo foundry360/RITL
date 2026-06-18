@@ -90,7 +90,7 @@ function buildOrderConfirmationEmail(input: {
     "",
     `Order reference: ${input.orderReference}`,
     "",
-    "You will receive another email with tracking details once your package ships.",
+    "We will email you as your order moves through fulfillment, including tracking when it ships.",
     "",
     `— ${BRAND_NAME}`,
   ].join("\n");
@@ -113,7 +113,7 @@ function buildOrderConfirmationEmail(input: {
           <p style="margin: 0; white-space: pre-line; font-size: 15px; line-height: 1.6; color: #d4d4cc;">${escapeHtml(shippingText)}</p>
           <p style="margin: 24px 0 0; font-size: 13px; color: #a8a8a0;">Order reference: ${escapeHtml(input.orderReference)}</p>
           <p style="margin: 16px 0 0; font-size: 14px; line-height: 1.6; color: #a8a8a0;">
-            You will receive another email with tracking details once your package ships.
+            We will email you as your order moves through fulfillment, including tracking when it ships.
           </p>
         </div>
       </div>

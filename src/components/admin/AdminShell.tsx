@@ -10,18 +10,11 @@ import { cn } from "@/lib/utils";
 const adminTabs = [
   { href: "/admin/customers", label: "Customers" },
   { href: "/admin/orders", label: "Orders" },
+  { href: "/admin/wholesale", label: "Wholesale" },
 ];
 
 function isTabActive(pathname: string, href: string): boolean {
-  if (href === "/admin/customers") {
-    return pathname === href || pathname.startsWith(`${href}/`);
-  }
-
-  if (href === "/admin/orders") {
-    return pathname === href || pathname.startsWith(`${href}/`);
-  }
-
-  return pathname === href;
+  return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 interface AdminShellProps {

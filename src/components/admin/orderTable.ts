@@ -16,6 +16,16 @@ export const ordersPanelColumnWidths = {
   orderId: "w-[9%]",
 } as const;
 
+export const wholesalePanelColumnWidths = {
+  customer: "w-[18%]",
+  company: "w-[14%]",
+  items: "w-[22%]",
+  date: "w-[14%]",
+  progress: "w-[11%]",
+  tracking: "w-[14%]",
+  orderId: "w-[7%]",
+} as const;
+
 export const orderHistoryColumnWidths = {
   items: "w-[20%]",
   date: "w-[15%]",
