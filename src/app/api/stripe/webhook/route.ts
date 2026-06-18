@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { revalidateStripePricing } from "@/lib/stripe/fetch-prices";
 import { syncCustomerFromPaymentIntent } from "@/lib/stripe/checkout-customer";
+import { sendOrderConfirmationEmail } from "@/lib/email/send-order-confirmation";
 import { submitRoastifyFulfillment } from "@/lib/roastify/submit-fulfillment";
 import { getStripe } from "@/lib/stripe/server";
 
@@ -49,9 +50,31 @@ export async function POST(request: NextRequest) {
       await syncCustomerFromPaymentIntent(paymentIntent);
 
       try {
+        await sendOrderConfirmationEmail(paymentIntent);
+      } catch (error) {
+        console.error("Order confirmation email failed:", error);
+      }
+
+      try {
         await submitRoastifyFulfillment(paymentIntent);
       } catch (error) {
         console.error("Roastify fulfillment failed:", error);
+      }
+
+      if (process.env.SALESFORCE_REFRESH_TOKEN?.trim()) {
+        try {
+          const { syncSalesforceCustomerFromPaymentIntent } = await import(
+            "@/lib/salesforce/sync-customer"
+          );
+          const result = await syncSalesforceCustomerFromPaymentIntent(paymentIntent);
+          if (result) {
+            console.info(
+              `Salesforce ${result.created ? "created" : "updated"} contact ${result.contactId}`
+            );
+          }
+        } catch (error) {
+          console.error("Salesforce customer sync failed:", error);
+        }
       }
     }
   } catch (error) {

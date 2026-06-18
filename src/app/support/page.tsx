@@ -19,10 +19,10 @@ export default function SupportPage() {
             Email
           </h2>
           <a
-            href="mailto:info@getritl.com"
+            href="mailto:support@getritl.com"
             className="text-text-primary transition-colors hover:text-steel-silver"
           >
-            info@getritl.com
+            support@getritl.com
           </a>
         </div>
         <div>

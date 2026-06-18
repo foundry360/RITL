@@ -4,6 +4,7 @@ import {
   getContactFromAddress,
   isContactEmailConfigured,
 } from "@/lib/contact/config";
+import { escapeHtml } from "@/lib/email/escape-html";
 
 export interface ContactMessageInput {
   name: string;
@@ -44,13 +45,4 @@ export async function sendContactMessage(
   if (error) {
     throw new Error(error.message);
   }
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
 }

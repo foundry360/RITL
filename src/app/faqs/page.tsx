@@ -24,7 +24,7 @@ const faqItems = [
   {
     question: "Do you offer subscriptions?",
     answer:
-      "Yes. Subscribe and save 15% with flexible delivery intervals. Pause, skip, or cancel anytime from your account dashboard.",
+      "Yes. Subscribe and save 15% with automatic delivery every 4 weeks. Pause, skip, or cancel anytime by contacting support@getritl.com.",
   },
   {
     question: "When is the best time to consume?",

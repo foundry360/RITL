@@ -4,6 +4,7 @@ import { Logo } from "@/components/layout/Logo";
 const footerLinks = {
   policies: [
     { href: "/privacy-policy", label: "Privacy Policy" },
+    { href: "/terms-of-use", label: "Terms of Use" },
     { href: "/return-policy", label: "Return Policy" },
     { href: "/shipping-policy", label: "Shipping Policy" },
   ],
@@ -67,7 +68,7 @@ export function Footer() {
               Contact
             </h3>
             <p className="text-sm text-text-muted leading-relaxed">
-              info@getritl.com
+              support@getritl.com
             </p>
             <p className="mt-4 text-sm text-text-muted leading-relaxed">
               Mon–Fri, 9am–6pm EST

@@ -1,4 +1,4 @@
-export const CONTACT_INBOX = "info@getritl.com";
+export const CONTACT_INBOX = "support@getritl.com";
 
 export function isContactEmailConfigured(): boolean {
   return Boolean(process.env.RESEND_API_KEY?.trim());

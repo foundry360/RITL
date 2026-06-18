@@ -9,7 +9,9 @@
     "lint": "eslint",
     "stripe:setup": "node scripts/setup-stripe.mjs",
     "stripe:verify": "node scripts/verify-stripe.mjs",
-    "roastify:verify": "node scripts/verify-roastify.mjs"
+    "roastify:verify": "node scripts/verify-roastify.mjs",
+    "salesforce:authorize": "node scripts/salesforce-authorize.mjs",
+    "salesforce:verify": "node scripts/verify-salesforce.mjs"
   },
   "dependencies": {
     "@stripe/react-stripe-js": "^6.6.0",
