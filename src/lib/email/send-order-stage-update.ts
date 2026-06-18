@@ -1,3 +1,4 @@
+import type Stripe from "stripe";
 import { Resend } from "resend";
 import {
   getContactFromAddress,
@@ -15,10 +16,7 @@ import {
   getStageEmailCopy,
   type RoastifyStageEmailStage,
 } from "@/lib/roastify/stage-emails";
-import {
-  findPaymentIntentByRoastifyOrderId,
-  syncRoastifyMetadataToStripe,
-} from "@/lib/roastify/sync-stripe-metadata";
+import { syncRoastifyMetadataToStripe } from "@/lib/roastify/sync-stripe-metadata";
 import type { RoastifyOrderDetail } from "@/lib/roastify/types";
 import { getStripe } from "@/lib/stripe/server";
 
@@ -30,25 +28,12 @@ function readCustomerName(order: RoastifyOrderDetail): string {
   return order.toAddress?.name?.trim() || "there";
 }
 
-async function resolveOrderReference(
-  roastifyOrderId: string
-): Promise<string> {
-  const paymentIntent = await findPaymentIntentByRoastifyOrderId(roastifyOrderId);
-  return paymentIntent?.id ?? roastifyOrderId;
-}
-
-async function shouldSkipCreatedStageEmail(
-  roastifyOrderId: string
-): Promise<boolean> {
-  const paymentIntent = await findPaymentIntentByRoastifyOrderId(roastifyOrderId);
-  return paymentIntent?.metadata?.ritl_confirmation_email_sent === "true";
-}
-
 export async function sendOrderStageUpdateEmail(input: {
   roastifyOrderId: string;
   stage: RoastifyStageEmailStage;
   webhookId?: string;
   roastifyOrder?: RoastifyOrderDetail;
+  paymentIntent?: Stripe.PaymentIntent | null;
 }): Promise<"sent" | "skipped" | "failed"> {
   if (!isContactEmailConfigured()) {
     console.warn(
@@ -57,14 +42,17 @@ export async function sendOrderStageUpdateEmail(input: {
     return "skipped";
   }
 
+  const paymentIntent = input.paymentIntent ?? null;
+
   if (
     input.stage === "created" &&
-    (await shouldSkipCreatedStageEmail(input.roastifyOrderId))
+    paymentIntent?.metadata?.ritl_confirmation_email_sent === "true"
   ) {
     await markStageEmailSent({
       roastifyOrderId: input.roastifyOrderId,
       stage: input.stage,
       webhookId: input.webhookId,
+      paymentIntent,
     });
     return "skipped";
   }
@@ -94,6 +82,7 @@ export async function sendOrderStageUpdateEmail(input: {
     roastifyOrderId: input.roastifyOrderId,
     stage: input.stage,
     customerEmail: recipientEmail,
+    paymentIntent,
   });
 
   if (alreadySent && input.stage !== "tracking") {
@@ -103,17 +92,17 @@ export async function sendOrderStageUpdateEmail(input: {
         stage: input.stage,
         customerEmail: recipientEmail,
         webhookId: input.webhookId,
+        paymentIntent,
       });
     }
     return "skipped";
   }
 
-  const paymentIntent = await findPaymentIntentByRoastifyOrderId(
-    input.roastifyOrderId
-  );
   if (paymentIntent) {
     try {
-      await syncRoastifyMetadataToStripe(paymentIntent, order);
+      await syncRoastifyMetadataToStripe(paymentIntent, order, {
+        notifyCustomer: false,
+      });
     } catch (error) {
       console.error(
         `Stripe metadata sync failed for Roastify order ${input.roastifyOrderId}`,
@@ -124,7 +113,7 @@ export async function sendOrderStageUpdateEmail(input: {
 
   const tracking = getRoastifyOrderTracking(order);
   const copy = getStageEmailCopy(input.stage);
-  const orderReference = await resolveOrderReference(input.roastifyOrderId);
+  const orderReference = paymentIntent?.id ?? input.roastifyOrderId;
   const { text, html } = buildTransactionalEmail({
     headline: copy.headline,
     body: copy.body,
@@ -158,6 +147,7 @@ export async function sendOrderStageUpdateEmail(input: {
     stage: input.stage,
     customerEmail: recipientEmail,
     webhookId: input.webhookId,
+    paymentIntent,
   });
 
   if (paymentIntent && input.stage === "shipped" && tracking.trackingNumber) {

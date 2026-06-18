@@ -55,11 +55,12 @@ export async function hasStageEmailBeenSent(input: {
   roastifyOrderId: string;
   stage: RoastifyStageEmailStage;
   customerEmail?: string;
+  paymentIntent?: Stripe.PaymentIntent | null;
 }): Promise<boolean> {
   const stageKey = input.stage.toLowerCase();
-  const paymentIntent = await findPaymentIntentByRoastifyOrderId(
-    input.roastifyOrderId
-  );
+  const paymentIntent =
+    input.paymentIntent ??
+    (await findPaymentIntentByRoastifyOrderId(input.roastifyOrderId));
 
   if (paymentIntent) {
     const sentStages = parseStageList(
@@ -88,6 +89,7 @@ export async function markStageEmailSent(input: {
   stage: RoastifyStageEmailStage;
   customerEmail?: string;
   webhookId?: string;
+  paymentIntent?: Stripe.PaymentIntent | null;
 }): Promise<void> {
   if (!isStripeSecretConfigured()) {
     return;
@@ -95,9 +97,9 @@ export async function markStageEmailSent(input: {
 
   const stageKey = input.stage.toLowerCase();
   const stripe = getStripe();
-  const paymentIntent = await findPaymentIntentByRoastifyOrderId(
-    input.roastifyOrderId
-  );
+  const paymentIntent =
+    input.paymentIntent ??
+    (await findPaymentIntentByRoastifyOrderId(input.roastifyOrderId));
 
   if (paymentIntent) {
     const metadata = paymentIntent.metadata ?? {};

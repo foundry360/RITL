@@ -288,7 +288,9 @@ export async function buildAdminOrdersFromPaymentIntents(
     rows
       .filter((row) => row.roastifyOrder)
       .map((row) =>
-        syncRoastifyMetadataToStripe(row.paymentIntent, row.roastifyOrder!)
+        syncRoastifyMetadataToStripe(row.paymentIntent, row.roastifyOrder!, {
+          notifyCustomer: false,
+        })
       )
   );
 
@@ -575,7 +577,9 @@ export async function getAdminOrder(orderId: string): Promise<AdminOrderDetail |
   if (isRoastifyConfigured() && roastifyOrderId) {
     try {
       roastifyOrder = await getRoastifyOrder(roastifyOrderId);
-      await syncRoastifyMetadataToStripe(paymentIntent, roastifyOrder);
+      await syncRoastifyMetadataToStripe(paymentIntent, roastifyOrder, {
+        notifyCustomer: false,
+      });
     } catch (error) {
       console.error(`Roastify order fetch failed for ${roastifyOrderId}:`, error);
     }

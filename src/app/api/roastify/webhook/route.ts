@@ -108,6 +108,7 @@ export async function POST(request: NextRequest) {
     stage,
     webhookId: svixId,
     roastifyOrder,
+    paymentIntent,
   });
 
   console.info(

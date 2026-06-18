@@ -7,7 +7,6 @@ import {
   getRoastifyOrderStatus,
   getRoastifyOrderTracking,
 } from "@/lib/roastify/parse-order";
-import { notifyRoastifyStageEmailIfNeeded } from "@/lib/roastify/sync-stripe-metadata";
 import type { RoastifyOrderDetail } from "@/lib/roastify/types";
 
 export interface AdminWholesaleOrderRow {
@@ -387,7 +386,6 @@ export async function getAdminWholesaleOrder(
 
   try {
     const order = await getRoastifyOrder(orderId);
-    await notifyRoastifyStageEmailIfNeeded(order);
     return toWholesaleOrderDetail(order);
   } catch {
     return null;

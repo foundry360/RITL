@@ -16,7 +16,9 @@ export interface SyncRoastifyMetadataOptions {
 
 export async function notifyRoastifyStageEmailIfNeeded(
   roastifyOrder: RoastifyOrderDetail,
-  options?: Pick<SyncRoastifyMetadataOptions, "webhookId">
+  options?: Pick<SyncRoastifyMetadataOptions, "webhookId"> & {
+    paymentIntent?: Stripe.PaymentIntent | null;
+  }
 ): Promise<"sent" | "skipped" | "failed" | "not_applicable"> {
   const stage = mapRoastifyStatusToStage(getRoastifyOrderStatus(roastifyOrder));
   if (!stage) {
@@ -28,6 +30,7 @@ export async function notifyRoastifyStageEmailIfNeeded(
     stage,
     roastifyOrder,
     webhookId: options?.webhookId,
+    paymentIntent: options?.paymentIntent,
   });
 }
 
@@ -98,13 +101,14 @@ export async function syncRoastifyMetadataToStripe(
     });
   }
 
-  if (options?.notifyCustomer === false) {
+  if (options?.notifyCustomer !== true) {
     return;
   }
 
   try {
     const emailResult = await notifyRoastifyStageEmailIfNeeded(roastifyOrder, {
       webhookId: options?.webhookId,
+      paymentIntent,
     });
     if (emailResult === "sent") {
       console.info(
