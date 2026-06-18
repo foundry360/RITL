@@ -1,6 +1,8 @@
 import Image from "next/image";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { SectionHeading, SectionLabel } from "@/components/ui/SectionLabel";
+import { BrandName } from "@/components/brand/BrandName";
+import { BRAND_COFFEE, BRAND_NAME_PRONUNCIATION } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
 const audienceItems = [
@@ -46,12 +48,12 @@ export function StorySection() {
             <FadeIn>
               <SectionLabel>The Story</SectionLabel>
               <SectionHeading className="mt-4">
-                The Story Behind RITL
+                The Story Behind <BrandName />
               </SectionHeading>
             </FadeIn>
             <FadeIn delay={100}>
               <p className="text-base leading-relaxed text-text-secondary">
-                RITL (rit-uhl) Coffee was created from a simple belief: energy
+                <BrandName /> ({BRAND_NAME_PRONUNCIATION}) Coffee was created from a simple belief: energy
                 should be intentional, not accidental.
               </p>
             </FadeIn>
@@ -59,7 +61,7 @@ export function StorySection() {
               <p className="text-base leading-relaxed text-text-secondary">
                 Most coffee is consumed out of habit: rushed mornings, scattered
                 focus, and unpredictable crashes that break the rhythm of the
-                day. RITL was designed to change that. It reframes coffee as a
+                day. <BrandName /> was designed to change that. It reframes coffee as a
                 ritual, not a reaction.
               </p>
             </FadeIn>
@@ -71,7 +73,7 @@ export function StorySection() {
             </FadeIn>
             <FadeIn delay={250}>
               <p className="text-base font-light text-text-primary">
-                RITL is built for that moment.
+                <BrandName /> is built for that moment.
               </p>
             </FadeIn>
             <FadeIn delay={300}>
@@ -86,8 +88,8 @@ export function StorySection() {
 
           <FadeIn delay={150}>
             <StoryImage
-              src="/story-mushrooms-v3.png"
-              alt="RITL Focus Coffee with functional mushrooms and ingredients"
+              src="/story-mushrooms-v4.png"
+              alt={`${BRAND_COFFEE} with functional mushrooms and ingredients`}
             />
           </FadeIn>
         </div>
@@ -103,13 +105,13 @@ export function StorySection() {
           <div className="order-1 lg:order-2">
             <FadeIn delay={100}>
               <h3 className="text-2xl sm:text-3xl font-light tracking-tight text-text-primary">
-                Who RITL Is For
+                Who <BrandName /> Is For
               </h3>
             </FadeIn>
 
             <FadeIn delay={150}>
               <p className="mt-6 text-base leading-relaxed text-text-secondary">
-                RITL is for the builders, the thinkers, and the operators.
+                <BrandName /> is for the builders, the thinkers, and the operators.
               </p>
             </FadeIn>
 
@@ -128,7 +130,7 @@ export function StorySection() {
             <div className="mt-12 space-y-6">
               <FadeIn delay={500}>
                 <p className="text-base leading-relaxed text-text-secondary">
-                  RITL is not for noise. It&apos;s for clarity. Not for chasing
+                  <BrandName /> is not for noise. It&apos;s for clarity. Not for chasing
                   energy, but for sustaining it.
                 </p>
               </FadeIn>

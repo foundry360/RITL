@@ -1,6 +1,7 @@
 import { Accordion } from "@/components/ui/Accordion";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { SectionHeading, SectionLabel } from "@/components/ui/SectionLabel";
+import { CONTACT_INBOX } from "@/lib/contact/config";
 
 const faqItems = [
   {
@@ -21,7 +22,7 @@ const faqItems = [
   {
     question: "Do you offer subscriptions?",
     answer:
-      "Yes. Subscribe and save 15% with automatic delivery every 4 weeks. Pause, skip, or cancel anytime by contacting support@getritl.com.",
+      `Yes. Subscribe and save 15% with automatic delivery every 4 weeks. Pause, skip, or cancel anytime by contacting ${CONTACT_INBOX}.`,
   },
   {
     question: "When is the best time to consume?",

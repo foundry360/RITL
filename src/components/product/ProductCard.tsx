@@ -5,7 +5,6 @@ import { AddToCartButton } from "@/components/product/AddToCartButton";
 import { ProductMedia } from "@/components/product/ProductMedia";
 import { ButtonLink } from "@/components/ui/Button";
 import { usePricing } from "@/context/PricingContext";
-import { cn } from "@/lib/utils";
 
 interface ProductCardProps {
   product: Product;
@@ -21,12 +20,7 @@ export function ProductCard({ product }: ProductCardProps) {
       <div className="p-5 lg:p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <span
-              className={cn(
-                "inline-block text-[10px] tracking-[0.2em] uppercase mb-2",
-                product.variant === "focus" ? "text-steel-silver" : "text-violet-gray"
-              )}
-            >
+            <span className="inline-block text-[10px] tracking-[0.2em] uppercase mb-2 text-steel-silver">
               {product.variant === "focus" ? "Precision" : "Calm Focus"}
             </span>
             <h3 className="text-xl font-light tracking-tight text-text-primary">

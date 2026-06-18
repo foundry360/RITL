@@ -5,6 +5,7 @@ import {
   isContactEmailConfigured,
 } from "@/lib/contact/config";
 import { escapeHtml } from "@/lib/email/escape-html";
+import { BRAND_NAME } from "@/lib/brand";
 
 export interface ContactMessageInput {
   name: string;
@@ -20,7 +21,7 @@ export async function sendContactMessage(
   }
 
   const resend = new Resend(process.env.RESEND_API_KEY);
-  const subject = `RITL website message from ${input.name}`;
+  const subject = `${BRAND_NAME} website message from ${input.name}`;
   const text = [
     `Name: ${input.name}`,
     `Email: ${input.email}`,

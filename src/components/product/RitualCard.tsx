@@ -1,3 +1,6 @@
+import { BrandName } from "@/components/brand/BrandName";
+import { BRAND_NAME_PRONUNCIATION } from "@/lib/brand";
+
 const ritualBenefits = [
   {
     title: "Morning intention",
@@ -86,7 +89,7 @@ export function RitualCard() {
             Ritual & Routine
           </span>
           <h3 className="text-xl font-light tracking-tight text-text-primary">
-            Build your RITL (rit-uhl)
+            Build your <BrandName /> ({BRAND_NAME_PRONUNCIATION})
           </h3>
           <p className="mt-3 text-xs leading-relaxed text-text-secondary sm:text-sm">
             Cognitive performance is not a momentary decision. It is a structured

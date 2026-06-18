@@ -6,6 +6,7 @@ import {
   type ProductId,
   type PurchaseType,
 } from "@/lib/stripe/products";
+import { BRAND_COFFEE } from "@/lib/brand";
 
 interface CheckoutPageProps {
   params: Promise<{ productId: string }>;
@@ -19,9 +20,9 @@ function parsePurchaseType(value?: string): PurchaseType {
 export async function generateMetadata({ params }: CheckoutPageProps) {
   const { productId } = await params;
   const product = getProduct(productId);
-  if (!product) return { title: "Secure Checkout | RITL Coffee" };
+  if (!product) return { title: `Secure Checkout | ${BRAND_COFFEE}` };
   return {
-    title: `Secure Checkout | ${product.name} | RITL Coffee`,
+    title: `Secure Checkout | ${product.name} | ${BRAND_COFFEE}`,
   };
 }
 

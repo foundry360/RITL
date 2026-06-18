@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { BRAND_NAME } from "@/lib/brand";
 
 interface LogoProps {
   className?: string;
@@ -8,13 +9,15 @@ interface LogoProps {
   href?: string;
 }
 
+const LOGO_ASPECT_RATIO = 977 / 255;
+
 export function Logo({ className, height = 28, href = "/" }: LogoProps) {
-  const width = Math.round(height * (1024 / 278));
+  const width = Math.round(height * LOGO_ASPECT_RATIO);
 
   const image = (
     <Image
-      src="/ritl-logo.png"
-      alt="RITL"
+      src="/ritul-logo.png"
+      alt={BRAND_NAME}
       width={width}
       height={height}
       priority

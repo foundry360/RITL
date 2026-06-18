@@ -3,9 +3,10 @@ import { ClearCheckoutSession } from "@/components/checkout/ClearCheckoutSession
 import { SubmitOrderFulfillment } from "@/components/checkout/SubmitOrderFulfillment";
 import { CheckoutPageShell } from "@/components/checkout/CheckoutPageShell";
 import { ButtonLink } from "@/components/ui/Button";
+import { BRAND_COFFEE } from "@/lib/brand";
 
 export const metadata = {
-  title: "Order Confirmed | RITL Coffee",
+  title: `Order Confirmed | ${BRAND_COFFEE}`,
 };
 
 export default function CheckoutSuccessPage() {

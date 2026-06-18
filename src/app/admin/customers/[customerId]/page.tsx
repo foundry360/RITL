@@ -3,6 +3,7 @@ import { AdminShell } from "@/components/admin/AdminShell";
 import { CustomerDetailPanel } from "@/components/admin/CustomerDetailPanel";
 import { getAdminCustomer } from "@/lib/admin/customers";
 import { requireAdminSession } from "@/lib/admin/require-session";
+import { BRAND_NAME } from "@/lib/brand";
 
 interface AdminCustomerDetailPageProps {
   params: Promise<{ customerId: string }>;
@@ -14,8 +15,8 @@ export async function generateMetadata({ params }: AdminCustomerDetailPageProps)
 
   return {
     title: customer
-      ? `${customer.name} | RITL Admin`
-      : "Customer | RITL Admin",
+      ? `${customer.name} | ${BRAND_NAME} Admin`
+      : `Customer | ${BRAND_NAME} Admin`,
   };
 }
 

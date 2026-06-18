@@ -1,5 +1,7 @@
 import { FadeIn } from "@/components/ui/FadeIn";
 import { SectionHeading, SectionLabel } from "@/components/ui/SectionLabel";
+import { BrandName } from "@/components/brand/BrandName";
+import { BRAND_NAME_PRONUNCIATION } from "@/lib/brand";
 
 const benefits = [
   {
@@ -81,8 +83,10 @@ export function BenefitsRITL() {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <FadeIn>
           <div className="max-w-xl">
-            <SectionLabel>RITL</SectionLabel>
-            <SectionHeading className="mt-4">Benefits of RITL (rit-uhl)</SectionHeading>
+            <SectionLabel><BrandName /></SectionLabel>
+            <SectionHeading className="mt-4">
+              Benefits of <BrandName /> ({BRAND_NAME_PRONUNCIATION})
+            </SectionHeading>
             <p className="mt-6 text-base leading-relaxed text-text-secondary">
               Ritual In The Loop is a framework for daily cognitive optimization
               through intentional, functional nutrition.

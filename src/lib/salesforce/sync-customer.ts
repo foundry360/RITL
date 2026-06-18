@@ -6,6 +6,7 @@ import {
   querySalesforce,
   updateSalesforceRecord,
 } from "@/lib/salesforce/client";
+import { BRAND_NAME } from "@/lib/brand";
 
 export interface SalesforceCustomerSyncInput {
   stripeCustomerId: string;
@@ -38,7 +39,7 @@ function escapeSoql(value: string): string {
 function splitName(fullName?: string): { firstName?: string; lastName: string } {
   const trimmed = fullName?.trim();
   if (!trimmed) {
-    return { lastName: "RITL Customer" };
+    return { lastName: `${BRAND_NAME} Customer` };
   }
 
   const parts = trimmed.split(/\s+/);
@@ -48,7 +49,7 @@ function splitName(fullName?: string): { firstName?: string; lastName: string } 
 
   return {
     firstName: parts.slice(0, -1).join(" "),
-    lastName: parts.at(-1) ?? "RITL Customer",
+    lastName: parts.at(-1) ?? `${BRAND_NAME} Customer`,
   };
 }
 
@@ -71,7 +72,7 @@ function buildContactDescription(input: SalesforceCustomerSyncInput): string {
     lines.push(`Last Order: ${input.lastOrderCurrency.toUpperCase()} ${amount}`);
   }
 
-  lines.push("Source: RITL Website / Stripe");
+  lines.push(`Source: ${BRAND_NAME} Website / Stripe`);
   return lines.join("\n");
 }
 

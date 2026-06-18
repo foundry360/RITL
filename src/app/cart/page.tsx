@@ -3,9 +3,10 @@ import { CartContent } from "@/components/cart/CartContent";
 import { CheckoutSteps } from "@/components/checkout/CheckoutSteps";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { BRAND_COFFEE } from "@/lib/brand";
 
 export const metadata = {
-  title: "Cart | RITL Coffee",
+  title: `Cart | ${BRAND_COFFEE}`,
 };
 
 export default function CartPage() {

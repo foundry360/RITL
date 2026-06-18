@@ -1,6 +1,7 @@
 import { getStripe } from "@/lib/stripe/server";
+import { BRAND_NAME } from "@/lib/brand";
 
-const CARD_ONLY_PMC_NAME = "RITL Checkout Card Only";
+const CARD_ONLY_PMC_NAME = `${BRAND_NAME} Checkout Card Only`;
 
 let cachedPaymentMethodConfigurationId: string | null = null;
 let hasSyncedDefaultPaymentMethodConfiguration = false;

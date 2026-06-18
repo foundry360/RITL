@@ -1,5 +1,6 @@
 import { Accordion } from "@/components/ui/Accordion";
 import { PolicyLayout } from "@/components/layout/PolicyLayout";
+import { CONTACT_INBOX } from "@/lib/contact/config";
 
 export const metadata = {
   title: "FAQs | Functional Coffee",
@@ -24,7 +25,7 @@ const faqItems = [
   {
     question: "Do you offer subscriptions?",
     answer:
-      "Yes. Subscribe and save 15% with automatic delivery every 4 weeks. Pause, skip, or cancel anytime by contacting support@getritl.com.",
+      `Yes. Subscribe and save 15% with automatic delivery every 4 weeks. Pause, skip, or cancel anytime by contacting ${CONTACT_INBOX}.`,
   },
   {
     question: "When is the best time to consume?",

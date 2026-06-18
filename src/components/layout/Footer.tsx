@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { Logo } from "@/components/layout/Logo";
+import { BrandName } from "@/components/brand/BrandName";
+import { BRAND_COFFEE } from "@/lib/brand";
+import { CONTACT_INBOX } from "@/lib/contact/config";
 
 const footerLinks = {
   policies: [
@@ -20,7 +23,7 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8 lg:py-20">
         <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
           <div className="lg:col-span-1">
-            <Logo height={28} />
+            <Logo height={36} />
             <p className="mt-6 max-w-xs text-sm leading-relaxed text-text-muted">
               Functional Coffee is cognitive wellness for the modern ritual.
               Precision-formulated for focus, clarity, and daily performance.
@@ -67,9 +70,12 @@ export function Footer() {
             <h3 className="text-xs tracking-[0.18em] uppercase text-text-secondary mb-6">
               Contact
             </h3>
-            <p className="text-sm text-text-muted leading-relaxed">
-              support@getritl.com
-            </p>
+            <a
+              href={`mailto:${CONTACT_INBOX}`}
+              className="text-sm text-text-muted leading-relaxed transition-colors hover:text-text-primary"
+            >
+              {CONTACT_INBOX}
+            </a>
             <p className="mt-4 text-sm text-text-muted leading-relaxed">
               Mon–Fri, 9am–6pm EST
             </p>
@@ -87,7 +93,7 @@ export function Footer() {
           </p>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs text-text-muted tracking-wide">
-              © {new Date().getFullYear()} RITL Coffee. All rights reserved.
+              © {new Date().getFullYear()} {BRAND_COFFEE}. All rights reserved.
             </p>
             <div className="flex items-center gap-4">
               <Link
@@ -97,7 +103,7 @@ export function Footer() {
                 Admin
               </Link>
               <p className="text-xs text-text-muted tracking-wide">
-                Ritual In The Loop (RITL)
+                Ritual In The Loop (<BrandName />)
               </p>
             </div>
           </div>

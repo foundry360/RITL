@@ -1,3 +1,5 @@
+import { BRAND_NAME } from "@/lib/brand";
+
 export type ProductId = "focus-coffee" | "matcha";
 
 export type PurchaseType = "one-time" | "subscription";
@@ -74,7 +76,7 @@ export const products: Record<ProductId, Product> = {
     variant: "focus",
     thumbnailSrc: "/products/focus-checkout-thumb.png",
     viewerUrl:
-      "https://viewer.roastify.app?productType=Tubes&artworkUrl=https://storage.roastify.app/design-upload/94dcec74-dc62-4cfb-984c-627881d0f187.jpeg",
+      "https://viewer.roastify.app?productType=Tubes&artworkUrl=https://storage.roastify.app/design-upload/d6a1ea02-c5ec-42fc-a3fe-7cacf28d16df.jpeg",
     features: [
       "L-Theanine for calm alertness",
       "120mg clean caffeine",
@@ -138,24 +140,24 @@ export const products: Record<ProductId, Product> = {
       {
         id: "product-hero",
         type: "image",
-        src: "/products/focus-hero-v4.png",
-        alt: "RITL Focus Coffee — Think sharp. Execute clearly.",
+        src: "/products/focus-hero-v6.png",
+        alt: `${BRAND_NAME} Focus Coffee — Think sharp. Execute clearly.`,
         label: "Product",
         fit: "contain",
       },
       {
         id: "hot-cold",
         type: "image",
-        src: "/products/focus-hot-cold.png",
-        alt: "RITL Focus Coffee hot or cold ritual",
+        src: "/products/focus-hot-cold-v2.png",
+        alt: `${BRAND_NAME} Focus Coffee — Hot or cold. Same focus.`,
         label: "Hot / Cold",
-        fit: "cover",
+        fit: "contain",
       },
       {
         id: "certifications",
         type: "image",
         src: "/products/matcha-certifications-v2.png",
-        alt: "RITL third-party lab certifications",
+        alt: `${BRAND_NAME} third-party lab certifications`,
         label: "Certified",
         fit: "cover",
       },
@@ -163,7 +165,7 @@ export const products: Record<ProductId, Product> = {
         id: "interactive-viewer",
         type: "viewer",
         viewerUrl:
-          "https://viewer.roastify.app?productType=Tubes&artworkUrl=https://storage.roastify.app/design-upload/94dcec74-dc62-4cfb-984c-627881d0f187.jpeg",
+          "https://viewer.roastify.app?productType=Tubes&artworkUrl=https://storage.roastify.app/design-upload/d6a1ea02-c5ec-42fc-a3fe-7cacf28d16df.jpeg",
         alt: "Focus Coffee interactive product view",
         label: "3D View",
         thumbnailSrc: "/products/focus-3d-thumb.png",
@@ -186,7 +188,7 @@ export const products: Record<ProductId, Product> = {
     variant: "matcha",
     thumbnailSrc: "/products/matcha-checkout-thumb.png",
     viewerUrl:
-      "https://viewer.roastify.app?productType=Tubes&artworkUrl=https://storage.roastify.app/design-upload/5bdde4ca-ad40-46d3-b653-0b217f659c5f.jpeg",
+      "https://viewer.roastify.app?productType=Tubes&artworkUrl=https://storage.roastify.app/design-upload/86a5813f-8b5c-4d54-980d-ec4fa698697e.jpeg",
     features: [
       "Ceremonial-grade sourcing",
       "Smooth L-theanine release",
@@ -263,24 +265,24 @@ export const products: Record<ProductId, Product> = {
       {
         id: "product-image",
         type: "image",
-        src: "/products/matcha-detail-v2.png",
-        alt: "RITL Ceremonial Matcha product",
-        label: "Detail",
-        fit: "cover",
+        src: "/products/matcha-hero-v5.png",
+        alt: `${BRAND_NAME} Ceremonial Matcha — Think steady. Feel clear.`,
+        label: "Product",
+        fit: "contain",
       },
       {
         id: "hot-cold",
         type: "image",
-        src: "/products/matcha-hot-cold.png",
-        alt: "RITL Matcha hot or cold ritual",
+        src: "/products/matcha-hot-cold-v2.png",
+        alt: `${BRAND_NAME} Matcha — Hot or cold. Same clarity.`,
         label: "Hot / Cold",
-        fit: "cover",
+        fit: "contain",
       },
       {
         id: "certifications",
         type: "image",
         src: "/products/matcha-certifications-v2.png",
-        alt: "RITL third-party lab certifications",
+        alt: `${BRAND_NAME} third-party lab certifications`,
         label: "Certified",
         fit: "cover",
       },
@@ -288,7 +290,7 @@ export const products: Record<ProductId, Product> = {
         id: "interactive-viewer",
         type: "viewer",
         viewerUrl:
-          "https://viewer.roastify.app?productType=Tubes&artworkUrl=https://storage.roastify.app/design-upload/5bdde4ca-ad40-46d3-b653-0b217f659c5f.jpeg",
+          "https://viewer.roastify.app?productType=Tubes&artworkUrl=https://storage.roastify.app/design-upload/86a5813f-8b5c-4d54-980d-ec4fa698697e.jpeg",
         alt: "Matcha interactive product view",
         label: "3D View",
         thumbnailSrc: "/products/matcha-tube-mockup.png",

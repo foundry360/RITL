@@ -1,8 +1,9 @@
 import { AdminLoginForm } from "@/components/admin/AdminLoginForm";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { BRAND_NAME } from "@/lib/brand";
 
 export const metadata = {
-  title: "Admin Sign In | RITL",
+  title: `Admin Sign In | ${BRAND_NAME}`,
 };
 
 export default function AdminLoginPage() {

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PolicyLayout } from "@/components/layout/PolicyLayout";
+import { CONTACT_INBOX } from "@/lib/contact/config";
 
 export const metadata = {
   title: "Support | Functional Coffee",
@@ -19,10 +20,10 @@ export default function SupportPage() {
             Email
           </h2>
           <a
-            href="mailto:support@getritl.com"
+            href={`mailto:${CONTACT_INBOX}`}
             className="text-text-primary transition-colors hover:text-steel-silver"
           >
-            support@getritl.com
+            {CONTACT_INBOX}
           </a>
         </div>
         <div>

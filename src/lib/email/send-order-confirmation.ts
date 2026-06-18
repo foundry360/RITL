@@ -6,6 +6,7 @@ import {
   isContactEmailConfigured,
 } from "@/lib/contact/config";
 import { escapeHtml } from "@/lib/email/escape-html";
+import { BRAND_NAME } from "@/lib/brand";
 import { resolveFulfillmentOrder } from "@/lib/roastify/resolve-fulfillment-order";
 import {
   getProduct,
@@ -74,7 +75,7 @@ function buildOrderConfirmationEmail(input: {
     return `- ${name} × ${item.quantity} (${formatPurchaseTypeLabel(item.purchaseType)})`;
   });
 
-  const subject = "Your RITL order is confirmed";
+  const subject = `Your ${BRAND_NAME} order is confirmed`;
   const text = [
     `Hi ${input.customerName},`,
     "",
@@ -91,14 +92,14 @@ function buildOrderConfirmationEmail(input: {
     "",
     "You will receive another email with tracking details once your package ships.",
     "",
-    "— RITL",
+    `— ${BRAND_NAME}`,
   ].join("\n");
 
   const html = `
     <div style="margin: 0; padding: 32px 16px; background: #0f0f0f; font-family: Georgia, 'Times New Roman', serif; color: #f5f5f0;">
       <div style="max-width: 560px; margin: 0 auto; background: #171717; border: 1px solid #2a2a2a; border-radius: 8px; overflow: hidden;">
         <div style="padding: 32px 28px 20px;">
-          <p style="margin: 0 0 8px; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: #a8a8a0;">RITL</p>
+          <p style="margin: 0 0 8px; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: #a8a8a0;">${escapeHtml(BRAND_NAME)}</p>
           <h1 style="margin: 0 0 16px; font-size: 28px; font-weight: 400; line-height: 1.2;">Your order is confirmed.</h1>
           <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #d4d4cc;">
             Hi ${escapeHtml(input.customerName)}, thank you for your order. We are preparing your ritual for fulfillment.

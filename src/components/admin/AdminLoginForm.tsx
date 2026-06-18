@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Logo } from "@/components/layout/Logo";
+import { BrandName } from "@/components/brand/BrandName";
+import { BRAND_NAME_PRONUNCIATION } from "@/lib/brand";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export function AdminLoginForm() {
@@ -48,7 +50,7 @@ export function AdminLoginForm() {
       <div className="mb-10 text-center">
         <Logo height={28} className="mx-auto" />
         <p className="mt-6 text-xs tracking-[0.18em] uppercase text-text-muted">
-          Employee Admin
+          Order Management System
         </p>
       </div>
 
@@ -60,7 +62,7 @@ export function AdminLoginForm() {
           Sign in
         </h1>
         <p className="mt-2 text-sm text-text-secondary">
-          RITL team access for order tracking.
+          <BrandName /> team access for order tracking.
         </p>
 
         <div className="mt-8 space-y-5">

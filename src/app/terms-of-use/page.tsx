@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { PolicyLayout } from "@/components/layout/PolicyLayout";
+import { BRAND_COFFEE, BRAND_NAME } from "@/lib/brand";
+import { CONTACT_INBOX } from "@/lib/contact/config";
 
 export const metadata = {
-  title: "Terms of Use | RITL Coffee",
+  title: `Terms of Use | ${BRAND_COFFEE}`,
 };
 
 export default function TermsOfUsePage() {
@@ -10,9 +12,9 @@ export default function TermsOfUsePage() {
     <PolicyLayout title="Terms of Use">
       <p>
         These Terms of Use (&quot;Terms&quot;) govern your access to and use of
-        the RITL Coffee website at getritl.com and related services
-        (collectively, the &quot;Service&quot;) operated by RITL Coffee
-        (&quot;RITL,&quot; &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;).
+        the {BRAND_COFFEE} website at getritl.com and related services
+        (collectively, the &quot;Service&quot;) operated by {BRAND_COFFEE}
+        (&quot;{BRAND_NAME},&quot; &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;).
         By accessing or using the Service, placing an order, or creating a
         subscription, you agree to these Terms. If you do not agree, do not use
         the Service.
@@ -30,7 +32,7 @@ export default function TermsOfUsePage() {
         2. Products &amp; Health Information
       </h2>
       <p>
-        RITL offers functional coffee and related wellness products. Product
+        {BRAND_NAME} offers functional coffee and related wellness products. Product
         descriptions, imagery, and marketing materials are provided for
         informational purposes. We strive to display products accurately, but
         colors, packaging, and presentation may vary slightly.
@@ -66,7 +68,7 @@ export default function TermsOfUsePage() {
 
       <h2 className="text-base text-text-primary pt-4">4. Subscriptions</h2>
       <p>
-        RITL offers optional subscription plans that renew automatically every{" "}
+        {BRAND_NAME} offers optional subscription plans that renew automatically every{" "}
         <strong className="font-medium text-text-primary">4 weeks</strong> at the
         subscription price displayed at checkout (currently a 15% savings compared
         to one-time purchase pricing, where applicable). By enrolling in a
@@ -84,10 +86,10 @@ export default function TermsOfUsePage() {
         You may pause, skip, or cancel your subscription at any time by
         contacting{" "}
         <a
-          href="mailto:support@getritl.com"
+          href={`mailto:${CONTACT_INBOX}`}
           className="text-steel-silver transition-colors hover:underline"
         >
-          support@getritl.com
+          {CONTACT_INBOX}
         </a>
         . To avoid being charged for the next billing cycle, submit cancellation
         requests at least 48 hours before your next scheduled renewal date.
@@ -153,7 +155,7 @@ export default function TermsOfUsePage() {
       </h2>
       <p>
         All content on the Service—including text, graphics, logos, product
-        names, images, design, and software—is owned by RITL or its licensors
+        names, images, design, and software—is owned by {BRAND_NAME} or its licensors
         and is protected by intellectual property laws. You may not copy,
         reproduce, distribute, modify, or create derivative works from any
         part of the Service without our prior written consent, except for
@@ -184,13 +186,13 @@ export default function TermsOfUsePage() {
         11. Limitation of Liability
       </h2>
       <p>
-        TO THE FULLEST EXTENT PERMITTED BY LAW, RITL AND ITS OFFICERS,
+        TO THE FULLEST EXTENT PERMITTED BY LAW, {BRAND_NAME} AND ITS OFFICERS,
         DIRECTORS, EMPLOYEES, AND AGENTS WILL NOT BE LIABLE FOR ANY INDIRECT,
         INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF
         PROFITS, DATA, OR GOODWILL, ARISING FROM YOUR USE OF THE SERVICE OR
         PURCHASE OF PRODUCTS. OUR TOTAL LIABILITY FOR ANY CLAIM ARISING OUT OF
         OR RELATING TO THESE TERMS OR YOUR USE OF THE SERVICE WILL NOT EXCEED
-        THE AMOUNT YOU PAID TO RITL FOR THE PRODUCTS GIVING RISE TO THE CLAIM
+        THE AMOUNT YOU PAID TO {BRAND_NAME} FOR THE PRODUCTS GIVING RISE TO THE CLAIM
         IN THE TWELVE (12) MONTHS PRECEDING THE EVENT.
       </p>
       <p>
@@ -200,7 +202,7 @@ export default function TermsOfUsePage() {
 
       <h2 className="text-base text-text-primary pt-4">12. Indemnification</h2>
       <p>
-        You agree to indemnify and hold harmless RITL and its affiliates from
+        You agree to indemnify and hold harmless {BRAND_NAME} and its affiliates from
         any claims, damages, losses, or expenses (including reasonable attorneys&apos;
         fees) arising from your violation of these Terms, misuse of the Service,
         or violation of any third-party rights.
@@ -216,7 +218,7 @@ export default function TermsOfUsePage() {
         Delaware, and you consent to personal jurisdiction in those courts.
       </p>
       <p>
-        Before filing a claim, you agree to contact us at support@getritl.com to
+        Before filing a claim, you agree to contact us at {CONTACT_INBOX} to
         attempt to resolve the dispute informally.
       </p>
 
@@ -233,10 +235,10 @@ export default function TermsOfUsePage() {
       <p>
         Questions about these Terms may be directed to{" "}
         <a
-          href="mailto:support@getritl.com"
+          href={`mailto:${CONTACT_INBOX}`}
           className="text-steel-silver transition-colors hover:underline"
         >
-          support@getritl.com
+          {CONTACT_INBOX}
         </a>
         .
       </p>

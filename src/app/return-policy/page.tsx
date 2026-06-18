@@ -1,4 +1,5 @@
 import { PolicyLayout } from "@/components/layout/PolicyLayout";
+import { CONTACT_INBOX } from "@/lib/contact/config";
 
 export const metadata = {
   title: "Return Policy | Functional Coffee",
@@ -19,7 +20,7 @@ export default function ReturnPolicyPage() {
       </p>
       <h2 className="text-base text-text-primary pt-4">Process</h2>
       <p>
-        To initiate a return, contact support@getritl.com with your
+        To initiate a return, contact {CONTACT_INBOX} with your
         order number. We will provide a prepaid return label for domestic
         orders. Refunds are processed within 5–7 business days of receiving
         your return.

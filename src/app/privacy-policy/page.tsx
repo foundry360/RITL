@@ -1,4 +1,5 @@
 import { PolicyLayout } from "@/components/layout/PolicyLayout";
+import { CONTACT_INBOX } from "@/lib/contact/config";
 
 export const metadata = {
   title: "Privacy Policy | Functional Coffee",
@@ -33,7 +34,7 @@ export default function PrivacyPolicyPage() {
       </p>
       <h2 className="text-base text-text-primary pt-4">Contact</h2>
       <p>
-        For privacy-related inquiries, contact us at support@getritl.com.
+        For privacy-related inquiries, contact us at {CONTACT_INBOX}.
       </p>
     </PolicyLayout>
   );

@@ -1,4 +1,6 @@
 import { ButtonLink } from "@/components/ui/Button";
+import { BrandName } from "@/components/brand/BrandName";
+import { BRAND_NAME_PRONUNCIATION } from "@/lib/brand";
 
 export function Hero() {
   return (
@@ -25,7 +27,7 @@ export function Hero() {
           Focus. Clarity. Performance.
         </h1>
         <p className="animate-fade-up animate-delay-200 mx-auto mt-8 max-w-3xl text-base sm:text-lg font-light leading-relaxed text-text-secondary lg:max-w-4xl">
-          RITL (rit-uhl) Coffee is a functional ritual for those who optimize every moment.
+          <BrandName /> ({BRAND_NAME_PRONUNCIATION}) Coffee is a functional ritual for those who optimize every moment.
           <br />
           Built for clean, sustained energy and uninterrupted focus without crashes, noise, or compromise.
         </p>

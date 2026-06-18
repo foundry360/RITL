@@ -6,9 +6,10 @@ import {
   listAdminCustomers,
 } from "@/lib/admin/customers";
 import { requireAdminSession } from "@/lib/admin/require-session";
+import { BRAND_NAME } from "@/lib/brand";
 
 export const metadata = {
-  title: "Customers | RITL Admin",
+  title: `Customers | ${BRAND_NAME} Admin`,
 };
 
 export default async function AdminCustomersPage() {
