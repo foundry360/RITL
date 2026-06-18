@@ -1,6 +1,11 @@
 import type Stripe from "stripe";
+import { EMAIL_BRAND_NAME, EMAIL_COLORS } from "@/lib/email/brand-tokens";
 import { escapeHtml } from "@/lib/email/escape-html";
-import { BRAND_NAME } from "@/lib/brand";
+import {
+  buildEmailShell,
+  emailSectionLabel,
+  emailStageBadge,
+} from "@/lib/email/layout";
 import type { RoastifyStageEmailStage } from "@/lib/roastify/stage-emails";
 import { isStripeSecretConfigured } from "@/lib/stripe/config";
 import { getStripe } from "@/lib/stripe/server";
@@ -156,75 +161,155 @@ interface EmailLayoutInput {
   body: string;
   customerName: string;
   orderReference: string;
+  paragraphs?: string[];
+  closingLines?: string[];
+  showStageBadge?: boolean;
   stageLabel?: string;
   trackingNumber?: string;
   trackingUrl?: string;
   carrier?: string;
+  trackingLayout?: "inline" | "section";
+}
+
+function buildIntroHtml(input: EmailLayoutInput): string {
+  const salutation = `<p style="margin: 0 0 16px;">Hi ${escapeHtml(input.customerName)},</p>`;
+
+  if (input.paragraphs?.length) {
+    const paragraphs = input.paragraphs
+      .map(
+        (paragraph) =>
+          `<p style="margin: 0 0 16px;">${escapeHtml(paragraph)}</p>`
+      )
+      .join("");
+    return salutation + paragraphs;
+  }
+
+  return `<p style="margin: 0;">Hi ${escapeHtml(input.customerName)}, ${escapeHtml(input.body)}</p>`;
+}
+
+function buildClosingHtml(closingLines?: string[]): string {
+  if (!closingLines?.length) {
+    return "";
+  }
+
+  return closingLines
+    .map((line, index) => {
+      const isLast = index === closingLines.length - 1;
+      const marginBottom = isLast ? "0" : "4px";
+      const marginTop = line === "Best regards," ? "16px" : "0";
+      return `<p style="margin: ${marginTop} 0 ${marginBottom}; font-size: 14px; line-height: 1.6; color: ${EMAIL_COLORS.textBody};">${escapeHtml(line)}</p>`;
+    })
+    .join("");
+}
+
+function buildTrackingHtml(input: EmailLayoutInput): string {
+  if (!input.trackingNumber) {
+    return "";
+  }
+
+  const trackingNumberHtml = input.trackingUrl
+    ? `<a href="${escapeHtml(input.trackingUrl)}" style="color: ${EMAIL_COLORS.link}; text-decoration: underline;">${escapeHtml(input.trackingNumber)}</a>`
+    : escapeHtml(input.trackingNumber);
+
+  if (input.trackingLayout === "inline") {
+    return `
+      <p style="margin: 0 0 8px; font-size: 15px; line-height: 1.6; color: ${EMAIL_COLORS.textBody};">
+        ${input.carrier ? `Carrier: <span style="color: ${EMAIL_COLORS.textPrimary};">${escapeHtml(input.carrier)}</span>` : ""}
+      </p>
+      <p style="margin: 0; font-size: 15px; line-height: 1.6; color: ${EMAIL_COLORS.textBody};">
+        Tracking number: <span style="color: ${EMAIL_COLORS.textPrimary};">${trackingNumberHtml}</span>
+      </p>`;
+  }
+
+  return `
+    ${emailSectionLabel("Tracking", { first: true })}
+    <p style="margin: 0; font-size: 15px; line-height: 1.6; color: ${EMAIL_COLORS.textBody};">
+      ${trackingNumberHtml}
+      ${input.carrier ? `<br /><span style="color: ${EMAIL_COLORS.textMuted};">${escapeHtml(input.carrier)}</span>` : ""}
+    </p>`;
+}
+
+function buildTrackingText(input: EmailLayoutInput): string[] {
+  if (!input.trackingNumber) {
+    return [];
+  }
+
+  if (input.trackingLayout === "inline") {
+    return [
+      "",
+      input.carrier ? `Carrier: ${input.carrier}` : "",
+      `Tracking number: ${input.trackingNumber}`,
+      input.trackingUrl ? `Track: ${input.trackingUrl}` : "",
+    ].filter(Boolean);
+  }
+
+  return [
+    "",
+    "Tracking",
+    input.trackingNumber,
+    input.carrier ? `Carrier: ${input.carrier}` : "",
+    input.trackingUrl ? `Track: ${input.trackingUrl}` : "",
+  ].filter(Boolean);
 }
 
 export function buildTransactionalEmail(input: EmailLayoutInput): {
   text: string;
   html: string;
 } {
+  const bodyText = input.paragraphs?.length
+    ? input.paragraphs.join("\n\n")
+    : input.body;
+
   const textLines = [
     `Hi ${input.customerName},`,
     "",
-    input.body,
+    bodyText,
+    ...buildTrackingText(input),
     "",
     `Order reference: ${input.orderReference}`,
   ];
 
-  if (input.stageLabel) {
+  if (input.closingLines?.length) {
+    const closingTextLines: string[] = [""];
+    for (const line of input.closingLines) {
+      if (line === "Best regards,") {
+        closingTextLines.push("");
+      }
+      closingTextLines.push(line);
+    }
+    textLines.push(...closingTextLines);
+  }
+
+  if (input.stageLabel && input.showStageBadge !== false) {
     textLines.splice(3, 0, `Status: ${input.stageLabel}`);
   }
 
-  if (input.trackingNumber) {
-    textLines.push(
-      "",
-      "Tracking",
-      input.trackingNumber,
-      input.carrier ? `Carrier: ${input.carrier}` : "",
-      input.trackingUrl ? `Track: ${input.trackingUrl}` : ""
-    );
+  if (!input.closingLines?.length) {
+    textLines.push("", `— ${EMAIL_BRAND_NAME}`);
   }
 
-  textLines.push("", `— ${BRAND_NAME}`);
+  const stageHtml =
+    input.stageLabel && input.showStageBadge !== false
+      ? emailStageBadge(input.stageLabel)
+      : "";
 
-  const trackingHtml = input.trackingNumber
-    ? `
-      <h2 style="margin: 28px 0 12px; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: #a8a8a0;">Tracking</h2>
-      <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #d4d4cc;">
-        ${
-          input.trackingUrl
-            ? `<a href="${escapeHtml(input.trackingUrl)}" style="color: #edeff3;">${escapeHtml(input.trackingNumber)}</a>`
-            : escapeHtml(input.trackingNumber)
-        }
-        ${input.carrier ? `<br /><span style="color: #a8a8a0;">${escapeHtml(input.carrier)}</span>` : ""}
-      </p>`
-    : "";
-
-  const stageHtml = input.stageLabel
-    ? `<p style="margin: 16px 0 0; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: #a8a8a0;">${escapeHtml(input.stageLabel)}</p>`
-    : "";
-
-  const html = `
-    <div style="margin: 0; padding: 32px 16px; background: #0f0f0f; font-family: Georgia, 'Times New Roman', serif; color: #f5f5f0;">
-      <div style="max-width: 560px; margin: 0 auto; background: #171717; border: 1px solid #2a2a2a; border-radius: 8px; overflow: hidden;">
-        <div style="padding: 32px 28px 20px;">
-          <p style="margin: 0 0 8px; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: #a8a8a0;">${escapeHtml(BRAND_NAME)}</p>
-          <h1 style="margin: 0 0 16px; font-size: 28px; font-weight: 400; line-height: 1.2;">${escapeHtml(input.headline)}</h1>
-          <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #d4d4cc;">
-            Hi ${escapeHtml(input.customerName)}, ${escapeHtml(input.body)}
-          </p>
-          ${stageHtml}
-        </div>
-        <div style="padding: 0 28px 28px;">
-          ${trackingHtml}
-          <p style="margin: 24px 0 0; font-size: 13px; color: #a8a8a0;">Order reference: ${escapeHtml(input.orderReference)}</p>
-        </div>
-      </div>
+  const trackingHtml = buildTrackingHtml(input);
+  const bodyHtml = trackingHtml || undefined;
+  const closingHtml = buildClosingHtml(input.closingLines);
+  const trackingTopMargin = input.trackingLayout === "inline" ? "24px" : "0";
+  const footerHtml = `
+    <div style="margin-top: ${bodyHtml ? "24px" : trackingTopMargin};">
+      <p style="margin: 0 0 ${closingHtml ? "20px" : "0"}; font-size: 13px; color: ${EMAIL_COLORS.textLabel};">Order reference: ${escapeHtml(input.orderReference)}</p>
+      ${closingHtml}
     </div>
   `;
+
+  const html = buildEmailShell({
+    headline: input.headline,
+    introHtml: `${buildIntroHtml(input)}${stageHtml}`,
+    bodyHtml,
+    footerHtml,
+  });
 
   return {
     text: textLines.filter(Boolean).join("\n"),

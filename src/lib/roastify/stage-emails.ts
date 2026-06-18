@@ -1,3 +1,5 @@
+import { BRAND_NAME } from "@/lib/brand";
+
 export const ROASTIFY_STAGE_EMAIL_STAGES = [
   "created",
   "picked",
@@ -36,44 +38,122 @@ const WEBHOOK_EVENT_TO_STAGE: Partial<
   "tracking.updated": "tracking",
 };
 
-const STAGE_COPY: Record<
-  RoastifyStageEmailStage,
-  { subject: string; headline: string; body: string }
-> = {
+export type StageEmailCopy = {
+  subject: string;
+  headline: string;
+  body: string;
+  paragraphs?: string[];
+  closingLines?: string[];
+  showStageBadge?: boolean;
+  trackingLayout?: "inline" | "section";
+};
+
+const STAGE_COPY: Record<RoastifyStageEmailStage, StageEmailCopy> = {
   created: {
-    subject: "Your order is in fulfillment",
-    headline: "Fulfillment has started.",
-    body: "Your order has entered our fulfillment queue and is being prepared.",
+    subject: "Your order is being prepared",
+    headline: "Your Order is Being Prepared",
+    body: "Thanks for your order — we've got it. Your order has been received and is now in our system. Our team will begin preparing it shortly. We'll keep you updated as it moves through fulfillment.",
+    paragraphs: [
+      "Thanks for your order — we've got it.",
+      "Your order has been received and is now in our system. Our team will begin preparing it shortly.",
+      "We'll keep you updated as it moves through fulfillment.",
+    ],
+    closingLines: [
+      "If you have any questions, feel free to reach out.",
+      "Best regards,",
+      `${BRAND_NAME} Fulfillment`,
+    ],
+    showStageBadge: false,
   },
   picked: {
     subject: "Your order has been picked",
-    headline: "Your order is being prepared.",
-    body: "Your items have been picked and are moving through production.",
+    headline: "Your Order Has Been Picked",
+    body: "Your order is moving along. All items have been picked and are now being prepared for the next step in fulfillment. We'll keep you updated as it progresses.",
+    paragraphs: [
+      "Your order is moving along.",
+      "All items have been picked and are now being prepared for the next step in fulfillment.",
+      "We'll keep you updated as it progresses.",
+    ],
+    closingLines: [
+      "If you have any questions, feel free to reach out.",
+      "Best regards,",
+      `${BRAND_NAME} Fulfillment`,
+    ],
+    showStageBadge: false,
   },
   printed: {
-    subject: "Your order label is ready",
-    headline: "Your shipping label is printed.",
-    body: "Your order is progressing through fulfillment and is one step closer to shipping.",
+    subject: "Your order is ready to ship",
+    headline: "Your Order is Ready to Ship",
+    body: "Your order is one step closer. The shipping label has been created, and your order is now being prepared for dispatch. We'll notify you as soon as it's on the way.",
+    paragraphs: [
+      "Your order is one step closer.",
+      "The shipping label has been created, and your order is now being prepared for dispatch.",
+      "We'll notify you as soon as it's on the way.",
+    ],
+    closingLines: [
+      "If you have any questions, feel free to reach out.",
+      "Best regards,",
+      `${BRAND_NAME} Fulfillment`,
+    ],
+    showStageBadge: false,
   },
   packaged: {
-    subject: "Your order is packaged",
-    headline: "Your order is packaged.",
-    body: "Your ritual is packed and ready to ship.",
+    subject: "Your order is packed",
+    headline: "Your Order is Packed",
+    body: "Your order is packed and ready. Everything has been carefully prepared and is now set for shipment. It will be on its way shortly.",
+    paragraphs: [
+      "Your order is packed and ready.",
+      "Everything has been carefully prepared and is now set for shipment. It will be on its way shortly.",
+    ],
+    closingLines: [
+      "We'll notify you as soon as it ships.",
+      "Best regards,",
+      `${BRAND_NAME} Fulfillment`,
+    ],
+    showStageBadge: false,
   },
   shipped: {
     subject: "Your order has shipped",
-    headline: "Your order is on the way.",
-    body: "Your package has shipped. Tracking details are included below.",
+    headline: "Your Order is On Its Way",
+    body: "Your order is on its way. Your package has shipped, and you can track its journey below.",
+    paragraphs: [
+      "Your order is on its way.",
+      "Your package has shipped, and you can track its journey below.",
+    ],
+    closingLines: [
+      "We'll see you soon.",
+      "Best regards,",
+      `${BRAND_NAME} Fulfillment`,
+    ],
+    showStageBadge: false,
+    trackingLayout: "inline",
   },
   canceled: {
-    subject: "Your order was canceled",
-    headline: "Your order was canceled.",
-    body: "This fulfillment was canceled. If you have questions, reply to this email.",
+    subject: "Your order has been canceled",
+    headline: "Your Order Has Been Canceled",
+    body: "Your order has been canceled. If this was unexpected or you need assistance, feel free to reply to this email — we're here to help.",
+    paragraphs: [
+      "Your order has been canceled.",
+      "If this was unexpected or you need assistance, feel free to reply to this email — we're here to help.",
+    ],
+    closingLines: ["Best regards,", `${BRAND_NAME} Fulfillment`],
+    showStageBadge: false,
   },
   tracking: {
-    subject: "Your tracking information was updated",
-    headline: "Tracking updated.",
-    body: "Your shipment tracking details have been updated.",
+    subject: "Update on your shipment",
+    headline: "There's an Update on Your Shipment",
+    body: "There's an update on your shipment. Your tracking details have been updated — you can follow the latest status below.",
+    paragraphs: [
+      "There's an update on your shipment.",
+      "Your tracking details have been updated — you can follow the latest status below.",
+    ],
+    closingLines: [
+      "We'll continue to keep you updated along the way.",
+      "Best regards,",
+      `${BRAND_NAME} Fulfillment`,
+    ],
+    showStageBadge: false,
+    trackingLayout: "inline",
   },
 };
 
@@ -104,11 +184,7 @@ export function resolveStageFromWebhookEvent(
   return WEBHOOK_EVENT_TO_STAGE[eventType as RoastifyWebhookEventType] ?? null;
 }
 
-export function getStageEmailCopy(stage: RoastifyStageEmailStage): {
-  subject: string;
-  headline: string;
-  body: string;
-} {
+export function getStageEmailCopy(stage: RoastifyStageEmailStage): StageEmailCopy {
   return STAGE_COPY[stage];
 }
 

@@ -11,6 +11,7 @@ const adminTabs = [
   { href: "/admin/customers", label: "Customers" },
   { href: "/admin/orders", label: "Orders" },
   { href: "/admin/wholesale", label: "Wholesale" },
+  { href: "/admin/email-preview", label: "Emails" },
 ];
 
 function isTabActive(pathname: string, href: string): boolean {

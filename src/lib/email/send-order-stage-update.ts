@@ -101,6 +101,10 @@ export async function sendOrderStageUpdateEmail(input: {
   const { text, html } = buildTransactionalEmail({
     headline: copy.headline,
     body: copy.body,
+    paragraphs: copy.paragraphs,
+    closingLines: copy.closingLines,
+    showStageBadge: copy.showStageBadge,
+    trackingLayout: copy.trackingLayout,
     customerName: readCustomerName(input.orderRecord, roastifyOrder),
     orderReference,
     stageLabel: formatStageLabel(input.stage),
