@@ -1,3 +1,4 @@
+import { buildAbandonedCheckoutEmail, getAbandonedCheckoutUrl } from "@/lib/email/build-abandoned-checkout";
 import { buildOrderConfirmationEmail } from "@/lib/email/build-order-confirmation";
 import { buildTransactionalEmail } from "@/lib/email/order-notifications";
 import {
@@ -27,6 +28,7 @@ const SAMPLE_ORDER = {
 
 export const EMAIL_PREVIEW_TEMPLATES = [
   { id: "confirmation", label: "Order confirmation" },
+  { id: "abandoned-checkout", label: "Abandoned checkout" },
   ...ROASTIFY_STAGE_EMAIL_STAGES.map((stage) => ({
     id: stage,
     label: `Stage: ${formatStageLabel(stage)}`,
@@ -35,6 +37,7 @@ export const EMAIL_PREVIEW_TEMPLATES = [
 
 export type EmailPreviewTemplateId =
   | "confirmation"
+  | "abandoned-checkout"
   | RoastifyStageEmailStage;
 
 export function renderEmailPreview(templateId: EmailPreviewTemplateId): {
@@ -47,6 +50,15 @@ export function renderEmailPreview(templateId: EmailPreviewTemplateId): {
       order: SAMPLE_ORDER,
       totalLabel: "$89.00",
       orderReference: "pi_preview_123",
+    });
+    return { subject: email.subject, html: email.html };
+  }
+
+  if (templateId === "abandoned-checkout") {
+    const email = buildAbandonedCheckoutEmail({
+      items: SAMPLE_ORDER.items,
+      totalLabel: "$89.00",
+      checkoutUrl: getAbandonedCheckoutUrl(),
     });
     return { subject: email.subject, html: email.html };
   }

@@ -73,7 +73,7 @@ export function buildAbandonedCheckoutEmail(input: {
     ${buildLineItemsHtml(input.items)}
     <p style="margin: 16px 0 0; font-size: 16px; color: ${EMAIL_COLORS.textPrimary};">Total: <strong>${escapeHtml(input.totalLabel)}</strong></p>
     <p style="margin: 24px 0 0;">
-      <a href="${escapeHtml(input.checkoutUrl)}" style="display: inline-block; padding: 12px 20px; border-radius: 8px; background: rgba(232, 93, 36, 0.16); border: 1px solid rgba(232, 93, 36, 0.45); color: ${EMAIL_COLORS.textPrimary}; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; text-decoration: none;">
+      <a href="${escapeHtml(input.checkoutUrl)}" style="display: inline-block; padding: 12px 20px; border-radius: 8px; background: ${EMAIL_COLORS.pageBg}; border: 1px solid ${EMAIL_COLORS.cardBorder}; color: ${EMAIL_COLORS.textPrimary}; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; text-decoration: none;">
         Complete your order
       </a>
     </p>
