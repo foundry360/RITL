@@ -10,11 +10,17 @@ import { BRAND_COFFEE } from "@/lib/brand";
 
 interface CheckoutPageProps {
   params: Promise<{ productId: string }>;
-  searchParams: Promise<{ purchaseType?: string }>;
+  searchParams: Promise<{ purchaseType?: string; quantity?: string }>;
 }
 
 function parsePurchaseType(value?: string): PurchaseType {
   return value === "subscription" ? "subscription" : "one-time";
+}
+
+function parseQuantity(value?: string): number {
+  const parsed = Number.parseInt(value ?? "1", 10);
+  if (!Number.isFinite(parsed) || parsed < 1) return 1;
+  return Math.min(99, parsed);
 }
 
 export async function generateMetadata({ params }: CheckoutPageProps) {
@@ -31,7 +37,8 @@ export default async function ProductCheckoutPage({
   searchParams,
 }: CheckoutPageProps) {
   const { productId } = await params;
-  const { purchaseType: purchaseTypeParam } = await searchParams;
+  const { purchaseType: purchaseTypeParam, quantity: quantityParam } =
+    await searchParams;
   const product = getProduct(productId);
 
   if (!product) {
@@ -39,8 +46,10 @@ export default async function ProductCheckoutPage({
   }
 
   const purchaseType = parsePurchaseType(purchaseTypeParam);
+  const quantity =
+    purchaseType === "one-time" ? parseQuantity(quantityParam) : 1;
   const items = [
-    { productId: product.id as ProductId, quantity: 1, purchaseType },
+    { productId: product.id as ProductId, quantity, purchaseType },
   ];
 
   return (

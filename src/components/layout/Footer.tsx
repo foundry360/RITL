@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Logo } from "@/components/layout/Logo";
-import { BrandName } from "@/components/brand/BrandName";
 import { BRAND_COFFEE } from "@/lib/brand";
 import { CONTACT_INBOX } from "@/lib/contact/config";
 
@@ -11,26 +10,90 @@ const footerLinks = {
     { href: "/return-policy", label: "Return Policy" },
     { href: "/shipping-policy", label: "Shipping Policy" },
   ],
+  certifications: [
+    {
+      href: "/certifications/mycotoxin-free.pdf",
+      label: "Certified Mycotoxin Free",
+    },
+    {
+      href: "/certifications/heavy-metal-free.pdf",
+      label: "Certified Heavy Metal Free",
+    },
+    {
+      href: "/certifications/mold-yeast-free.pdf",
+      label: "Certified Mold & Yeast Free",
+    },
+  ],
   support: [
+    { href: "/orders/lookup", label: "Track Order" },
     { href: "/faqs", label: "FAQs" },
     { href: "/support", label: "Support" },
   ],
 };
 
+function LockIcon() {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 20 20"
+      fill="none"
+      aria-hidden="true"
+      className="shrink-0"
+    >
+      <rect
+        x="4"
+        y="9"
+        width="12"
+        height="8"
+        rx="1.5"
+        stroke="currentColor"
+        strokeWidth="1.25"
+      />
+      <path
+        d="M6.5 9V6.5a3.5 3.5 0 0 1 7 0V9"
+        stroke="currentColor"
+        strokeWidth="1.25"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 export function Footer() {
   return (
     <footer className="border-t border-graphite bg-near-black">
       <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8 lg:py-20">
-        <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
-          <div className="lg:col-span-1">
+        <div className="flex flex-col gap-12 sm:grid sm:grid-cols-2 lg:flex lg:flex-row lg:items-start lg:justify-between lg:gap-0">
+          <div className="lg:max-w-[220px]">
             <Logo height={36} />
-            <p className="mt-6 max-w-xs text-sm leading-relaxed text-text-muted">
+            <p className="mt-6 text-sm leading-relaxed text-text-muted">
               Functional Coffee is cognitive wellness for the modern ritual.
               Precision-formulated for focus, clarity, and daily performance.
             </p>
           </div>
 
-          <div>
+          <div className="shrink-0">
+            <h3 className="text-xs tracking-[0.18em] uppercase text-text-secondary mb-6">
+              Certifications
+            </h3>
+            <ul className="space-y-4">
+              {footerLinks.certifications.map((link) => (
+                <li key={link.href}>
+                  <a
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-text-muted transition-colors hover:text-text-primary"
+                  >
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="shrink-0">
             <h3 className="text-xs tracking-[0.18em] uppercase text-text-secondary mb-6">
               Policies
             </h3>
@@ -48,7 +111,7 @@ export function Footer() {
             </ul>
           </div>
 
-          <div>
+          <div className="shrink-0">
             <h3 className="text-xs tracking-[0.18em] uppercase text-text-secondary mb-6">
               Help
             </h3>
@@ -66,7 +129,7 @@ export function Footer() {
             </ul>
           </div>
 
-          <div>
+          <div className="shrink-0">
             <h3 className="text-xs tracking-[0.18em] uppercase text-text-secondary mb-6">
               Contact
             </h3>
@@ -95,17 +158,13 @@ export function Footer() {
             <p className="text-xs text-text-muted tracking-wide">
               © {new Date().getFullYear()} {BRAND_COFFEE}. All rights reserved.
             </p>
-            <div className="flex items-center gap-4">
-              <Link
-                href="/admin/login"
-                className="text-xs text-text-muted tracking-wide transition-colors hover:text-text-primary"
-              >
-                Admin
-              </Link>
-              <p className="text-xs text-text-muted tracking-wide">
-                Ritual In The Loop (<BrandName />)
-              </p>
-            </div>
+            <Link
+              href="/admin/login"
+              className="inline-flex items-center gap-1.5 text-xs text-text-muted tracking-wide transition-colors hover:text-text-primary"
+            >
+              <LockIcon />
+              Admin
+            </Link>
           </div>
         </div>
       </div>

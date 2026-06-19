@@ -92,7 +92,7 @@ export async function getStripePricingStatus() {
     stripeMode = secretKey.startsWith("sk_live_") ? "live" : "test";
     try {
       const stripe = getStripe();
-      const account = await stripe.accounts.retrieve();
+      const account = await stripe.accounts.retrieve(null);
       stripeAccountId = account.id;
     } catch (error) {
       console.error("Failed to retrieve Stripe account metadata:", error);

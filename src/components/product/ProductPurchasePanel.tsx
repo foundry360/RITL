@@ -4,6 +4,7 @@ import { useState } from "react";
 import { AddToCartButton } from "@/components/product/AddToCartButton";
 import { CheckoutButton } from "@/components/product/CheckoutButton";
 import { PurchaseTypeSelector } from "@/components/product/PurchaseTypeSelector";
+import { QuantitySelector } from "@/components/product/QuantitySelector";
 import { ButtonLink } from "@/components/ui/Button";
 import { usePricing } from "@/context/PricingContext";
 import type { Product, PurchaseType } from "@/lib/stripe/products";
@@ -14,6 +15,7 @@ interface ProductPurchasePanelProps {
 
 export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
   const [purchaseType, setPurchaseType] = useState<PurchaseType>("one-time");
+  const [quantity, setQuantity] = useState(1);
   const { getPriceLabel, getSubscriptionSavingsLabel, isReady } = usePricing();
   const priceLabel = getPriceLabel(product.id, purchaseType);
   const subscriptionPriceLabel = getPriceLabel(product.id, "subscription");
@@ -42,9 +44,21 @@ export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
         subscriptionSavingsLabel={subscriptionSavingsLabel}
       />
 
+      {purchaseType === "one-time" && (
+        <QuantitySelector value={quantity} onChange={setQuantity} />
+      )}
+
       <div className="flex flex-wrap gap-3">
-        <AddToCartButton productId={product.id} purchaseType={purchaseType} />
-        <CheckoutButton productId={product.id} purchaseType={purchaseType} />
+        <AddToCartButton
+          productId={product.id}
+          purchaseType={purchaseType}
+          quantity={purchaseType === "one-time" ? quantity : 1}
+        />
+        <CheckoutButton
+          productId={product.id}
+          purchaseType={purchaseType}
+          quantity={purchaseType === "one-time" ? quantity : 1}
+        />
         <ButtonLink href="/#products" variant="outline">
           Continue Shopping
         </ButtonLink>

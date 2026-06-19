@@ -70,9 +70,10 @@ async function runWithPg(sql) {
 async function main() {
   loadProjectEnv();
 
+  const migrationArg = process.argv[2];
   const migrationPath = resolve(
     process.cwd(),
-    "supabase/migrations/001_orders.sql"
+    migrationArg ?? "supabase/migrations/001_orders.sql"
   );
   const sql = readFileSync(migrationPath, "utf8");
   const projectRef = getProjectRef();
@@ -98,7 +99,7 @@ async function main() {
       "",
       "Option A — Supabase Dashboard:",
       "  1. Open https://supabase.com/dashboard/project/" + projectRef + "/sql/new",
-      "  2. Paste supabase/migrations/001_orders.sql and run",
+      "  2. Paste the migration SQL file and run",
       "",
       "Option B — CLI with access token:",
       "  1. Create a token at https://supabase.com/dashboard/account/tokens",

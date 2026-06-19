@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
+import { markAbandonedCheckoutConverted } from "@/lib/abandoned-checkout/repository";
 import { revalidateStripePricing } from "@/lib/stripe/fetch-prices";
 import { syncCustomerFromPaymentIntent } from "@/lib/stripe/checkout-customer";
+import { readPaymentIntentCustomerEmail } from "@/lib/stripe/payment-intent-email";
 import { sendOrderConfirmationEmail } from "@/lib/email/send-order-confirmation";
 import { submitRoastifyFulfillment } from "@/lib/roastify/submit-fulfillment";
 import { buildWebsiteOrderInput } from "@/lib/orders/from-stripe";
@@ -51,6 +53,15 @@ export async function POST(request: NextRequest) {
     if (event.type === "payment_intent.succeeded") {
       const paymentIntent = event.data.object as Stripe.PaymentIntent;
       await syncCustomerFromPaymentIntent(paymentIntent);
+
+      try {
+        const customerEmail = await readPaymentIntentCustomerEmail(paymentIntent);
+        if (customerEmail) {
+          await markAbandonedCheckoutConverted(customerEmail);
+        }
+      } catch (error) {
+        console.error("Failed to mark abandoned checkout converted:", error);
+      }
 
       if (isOrdersDatabaseConfigured()) {
         try {

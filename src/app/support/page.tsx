@@ -37,8 +37,14 @@ export default function SupportPage() {
             Order Status
           </h2>
           <p>
-            Check your confirmation email for tracking information, or reply to
-            your order confirmation for assistance.
+            <Link
+              href="/orders/lookup"
+              className="text-steel-silver transition-colors hover:underline"
+            >
+              Track your order
+            </Link>{" "}
+            using your email, name, and order reference from your confirmation
+            email. No account required.
           </p>
         </div>
       </div>

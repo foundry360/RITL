@@ -36,14 +36,16 @@ export function ProductCard({ product }: ProductCardProps) {
           {product.description}
         </p>
 
-        <div className="mt-5 flex flex-wrap gap-2">
-          <ButtonLink href={`/products/${product.id}`} variant="outline" size="sm">
-            Details
+        <div className="mt-5 grid grid-cols-2 gap-2">
+          <ButtonLink
+            href={`/products/${product.id}`}
+            variant="outline"
+            size="sm"
+            className="w-full"
+          >
+            Product Details
           </ButtonLink>
-          <AddToCartButton productId={product.id} size="sm" />
-          <ButtonLink href={`/checkout/${product.id}`} variant="primary" size="sm">
-            Buy Now
-          </ButtonLink>
+          <AddToCartButton productId={product.id} size="sm" className="w-full" />
         </div>
       </div>
     </article>
