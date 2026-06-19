@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { SiteAnalytics } from "@/components/analytics/SiteAnalytics";
 import { Providers } from "@/components/providers/Providers";
 import { getStripePricing } from "@/lib/stripe/fetch-prices";
 import "./globals.css";
@@ -34,6 +35,7 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-near-black text-text-primary">
         <Providers initialPricing={initialPricing}>{children}</Providers>
+        <SiteAnalytics />
       </body>
     </html>
   );

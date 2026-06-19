@@ -16,7 +16,7 @@ export function Hero() {
         aria-hidden
       />
 
-      <div className="relative z-10 mx-auto grid w-full max-w-7xl items-center gap-12 px-6 py-20 lg:grid-cols-2 lg:gap-16 lg:px-8 lg:py-24">
+      <div className="relative z-10 mx-auto grid w-full max-w-7xl items-center gap-12 px-6 pt-20 pb-12 lg:grid-cols-2 lg:gap-16 lg:px-8 lg:pt-24 lg:pb-14">
         <div className="text-left">
           <p className="animate-fade-up text-xs tracking-[0.25em] uppercase text-text-muted">
             Cognitive Wellness
