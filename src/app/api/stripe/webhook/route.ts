@@ -91,6 +91,22 @@ export async function POST(request: NextRequest) {
         console.error("Roastify fulfillment failed:", error);
       }
 
+      if (process.env.GHL_API_TOKEN?.trim() && process.env.GHL_LOCATION_ID?.trim()) {
+        try {
+          const { syncGhlContactFromPaymentIntent } = await import(
+            "@/lib/gohighlevel/sync-contact"
+          );
+          const result = await syncGhlContactFromPaymentIntent(paymentIntent);
+          if (result) {
+            console.info(
+              `GoHighLevel ${result.created ? "created" : "updated"} contact ${result.contactId}`
+            );
+          }
+        } catch (error) {
+          console.error("GoHighLevel contact sync failed:", error);
+        }
+      }
+
       if (process.env.SALESFORCE_REFRESH_TOKEN?.trim()) {
         try {
           const { syncSalesforceCustomerFromPaymentIntent } = await import(

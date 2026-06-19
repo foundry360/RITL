@@ -20,7 +20,8 @@
     "abandoned-checkout:migrate": "node scripts/apply-orders-migration.mjs supabase/migrations/002_abandoned_checkouts.sql",
     "orders:sync": "npx tsx scripts/sync-orders-fulfillment.ts",
     "salesforce:authorize": "node scripts/salesforce-authorize.mjs",
-    "salesforce:verify": "node scripts/verify-salesforce.mjs"
+    "salesforce:verify": "node scripts/verify-salesforce.mjs",
+    "ghl:verify": "node scripts/verify-ghl.mjs"
   },
   "dependencies": {
     "@google-analytics/data": "^6.1.0",
