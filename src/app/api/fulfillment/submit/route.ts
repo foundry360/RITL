@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendOrderConfirmationEmail } from "@/lib/email/send-order-confirmation";
+import { buildWebsiteOrderInput } from "@/lib/orders/from-stripe";
+import { upsertWebsiteOrder } from "@/lib/orders/repository";
 import { submitRoastifyFulfillment } from "@/lib/roastify/submit-fulfillment";
+import { syncCustomerFromPaymentIntent } from "@/lib/stripe/checkout-customer";
 import { isStripeSecretConfigured } from "@/lib/stripe/config";
+import { isOrdersDatabaseConfigured } from "@/lib/supabase/config";
 import { getStripe } from "@/lib/stripe/server";
 
 export async function POST(request: NextRequest) {
@@ -34,6 +38,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    await syncCustomerFromPaymentIntent(paymentIntent);
+
+    if (isOrdersDatabaseConfigured()) {
+      try {
+        const fullPaymentIntent = await stripe.paymentIntents.retrieve(
+          paymentIntentId,
+          { expand: ["customer"] }
+        );
+        const orderInput = await buildWebsiteOrderInput(fullPaymentIntent);
+        if (orderInput) {
+          await upsertWebsiteOrder(orderInput);
+        }
+      } catch (error) {
+        console.error("Failed to persist order in Supabase:", error);
+      }
+    }
+
     if (!paymentIntent.metadata?.ritl_roastify_order_id) {
       await submitRoastifyFulfillment(paymentIntent);
     }
@@ -43,6 +64,22 @@ export async function POST(request: NextRequest) {
         await sendOrderConfirmationEmail(paymentIntent);
       } catch (error) {
         console.error("Order confirmation email failed:", error);
+      }
+    }
+
+    if (process.env.SALESFORCE_REFRESH_TOKEN?.trim()) {
+      try {
+        const { syncSalesforceCustomerFromPaymentIntent } = await import(
+          "@/lib/salesforce/sync-customer"
+        );
+        const result = await syncSalesforceCustomerFromPaymentIntent(paymentIntent);
+        if (result) {
+          console.info(
+            `Salesforce ${result.created ? "created" : "updated"} contact ${result.contactId}`
+          );
+        }
+      } catch (error) {
+        console.error("Salesforce customer sync failed:", error);
       }
     }
 

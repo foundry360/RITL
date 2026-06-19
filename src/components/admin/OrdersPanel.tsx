@@ -13,6 +13,7 @@ import { truncateRoastifyOrderId, formatOrderTypeLabel } from "@/lib/admin/forma
 import { formatPrice } from "@/lib/checkout/format";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
+import { FulfillmentProgressSteps } from "@/components/admin/FulfillmentProgressSteps";
 import {
   orderTableCellClass,
   orderTableClass,
@@ -400,18 +401,7 @@ export function OrdersPanel({ initialResult }: OrdersPanelProps) {
                         )}
                       </td>
                       <td className={orderTableCellClass}>
-                        {order.roastifyStatus ? (
-                          <span
-                            className={cn(
-                              "inline-flex rounded-full px-2.5 py-1 text-[10px] tracking-[0.12em] uppercase",
-                              "bg-steel-silver/15 text-text-primary ring-1 ring-steel-silver/40"
-                            )}
-                          >
-                            {order.roastifyStatus}
-                          </span>
-                        ) : (
-                          <span className="text-text-muted">—</span>
-                        )}
+                        <FulfillmentProgressSteps status={order.roastifyStatus} />
                       </td>
                       <td className={orderTableCellClass}>
                         {order.trackingNumber ? (

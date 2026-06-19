@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { AdminOrderDetail } from "@/lib/admin/orders";
 import { truncateRoastifyOrderId } from "@/lib/admin/format";
+import { FulfillmentProgressSteps } from "@/components/admin/FulfillmentProgressSteps";
 import { formatPrice } from "@/lib/checkout/format";
 import { cn } from "@/lib/utils";
 
@@ -68,7 +69,14 @@ export function OrderDetailPanel({ order }: OrderDetailPanelProps) {
             <div className="space-y-6">
               <DetailField label="Date" value={formatOrderDate(order.createdAt)} />
               <DetailField label="Total" value={formatPrice(order.amount / 100)} />
-              <DetailField label="Progress" value={order.roastifyStatus} />
+              <div>
+                <p className="text-xs tracking-[0.14em] uppercase text-text-muted">
+                  Progress
+                </p>
+                <div className="mt-2">
+                  <FulfillmentProgressSteps status={order.roastifyStatus} />
+                </div>
+              </div>
               <DetailField label="Tracking Number" value={order.trackingNumber} />
               <DetailField label="Carrier" value={order.carrier} />
               <DetailField

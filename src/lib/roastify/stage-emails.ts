@@ -188,7 +188,54 @@ export function getStageEmailCopy(stage: RoastifyStageEmailStage): StageEmailCop
   return STAGE_COPY[stage];
 }
 
-export function parseRoastifyWebhookPayload(payload: unknown): {
+const FULFILLMENT_STATUS_TO_EVENT: Record<string, RoastifyWebhookEventType> = {
+  created: "fulfillment.created",
+  picked: "fulfillment.picked",
+  printed: "fulfillment.printed",
+  packaged: "fulfillment.packaged",
+  shipped: "fulfillment.shipped",
+  canceled: "fulfillment.canceled",
+  cancelled: "fulfillment.canceled",
+};
+
+function readStringField(
+  record: Record<string, unknown>,
+  ...keys: string[]
+): string {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+  }
+
+  return "";
+}
+
+function inferEventTypeFromFulfillmentData(
+  data: Record<string, unknown>
+): string {
+  const status = readStringField(data, "status", "orderStatus", "order_status");
+  if (status) {
+    const mapped = FULFILLMENT_STATUS_TO_EVENT[status.toLowerCase()];
+    if (mapped) {
+      return mapped;
+    }
+  }
+
+  if (
+    readStringField(data, "trackingNumber", "tracking_number", "trackingUrl", "tracking_url")
+  ) {
+    return "tracking.updated";
+  }
+
+  return "";
+}
+
+export function parseRoastifyWebhookPayload(
+  payload: unknown,
+  options?: { headerEventType?: string | null }
+): {
   eventType: string;
   orderId?: string;
 } {
@@ -197,19 +244,24 @@ export function parseRoastifyWebhookPayload(payload: unknown): {
       ? (payload as Record<string, unknown>)
       : {};
 
+  const payloadBody =
+    record.payload && typeof record.payload === "object"
+      ? (record.payload as Record<string, unknown>)
+      : null;
+
   const data =
     record.data && typeof record.data === "object"
       ? (record.data as Record<string, unknown>)
-      : record;
+      : payloadBody ?? record;
 
   const eventType =
-    (typeof record.type === "string" && record.type) ||
-    (typeof record.event === "string" && record.event) ||
-    (typeof record.eventType === "string" && record.eventType) ||
-    (typeof record.event_type === "string" && record.event_type) ||
-    (typeof data.type === "string" && data.type) ||
-    (typeof data.event === "string" && data.event) ||
-    "";
+    readStringField(record, "type", "event", "eventType", "event_type") ||
+    readStringField(data, "type", "event", "eventType", "event_type") ||
+    readStringField(
+      { eventType: options?.headerEventType ?? "" },
+      "eventType"
+    ) ||
+    inferEventTypeFromFulfillmentData(data);
 
   const nestedData =
     data.data && typeof data.data === "object"
@@ -217,16 +269,17 @@ export function parseRoastifyWebhookPayload(payload: unknown): {
       : data;
 
   const orderId =
-    (typeof nestedData.orderId === "string" && nestedData.orderId) ||
-    (typeof nestedData.order_id === "string" && nestedData.order_id) ||
-    (typeof nestedData.id === "string" && nestedData.id) ||
-    (typeof data.orderId === "string" && data.orderId) ||
-    (typeof data.order_id === "string" && data.order_id) ||
-    (typeof data.id === "string" && data.id) ||
-    (typeof record.orderId === "string" && record.orderId) ||
+    readStringField(
+      nestedData,
+      "orderId",
+      "order_id",
+      "id"
+    ) ||
+    readStringField(data, "orderId", "order_id", "id") ||
+    readStringField(record, "orderId", "order_id") ||
     undefined;
 
-  return { eventType, orderId };
+  return { eventType, orderId: orderId || undefined };
 }
 
 export function formatStageLabel(stage: RoastifyStageEmailStage): string {

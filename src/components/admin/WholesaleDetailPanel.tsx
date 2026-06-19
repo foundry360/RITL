@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { AdminWholesaleOrderDetail } from "@/lib/admin/wholesale";
 import { truncateRoastifyOrderId } from "@/lib/admin/format";
+import { FulfillmentProgressSteps } from "@/components/admin/FulfillmentProgressSteps";
 
 interface WholesaleDetailPanelProps {
   order: AdminWholesaleOrderDetail;
@@ -63,7 +64,14 @@ export function WholesaleDetailPanel({ order }: WholesaleDetailPanelProps) {
               <DetailField label="Customer" value={order.customerName} />
               <DetailField label="Email" value={order.customerEmail} />
               <DetailField label="Company" value={order.company} />
-              <DetailField label="Progress" value={order.roastifyStatus} />
+              <div>
+                <p className="text-xs tracking-[0.14em] uppercase text-text-muted">
+                  Progress
+                </p>
+                <div className="mt-2">
+                  <FulfillmentProgressSteps status={order.roastifyStatus} />
+                </div>
+              </div>
               <DetailField label="Tracking Number" value={order.trackingNumber} />
               <DetailField label="Carrier" value={order.carrier} />
               <DetailField

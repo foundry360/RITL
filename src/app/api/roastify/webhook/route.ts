@@ -75,9 +75,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: message }, { status: 400 });
   }
 
-  const { eventType, orderId } = parseRoastifyWebhookPayload(event);
+  const headerEventType =
+    request.headers.get("svix-event-type") ??
+    request.headers.get("webhook-event-type") ??
+    request.headers.get("x-event-type");
+
+  const { eventType, orderId } = parseRoastifyWebhookPayload(event, {
+    headerEventType,
+  });
   if (!eventType) {
-    return NextResponse.json({ ok: true, skipped: "missing_event_type" });
+    return NextResponse.json({
+      ok: true,
+      skipped: "missing_event_type",
+      hint: "Roastify test payloads may omit event type; use fulfillment.picked (etc.) or advance an order in the simulator.",
+    });
   }
 
   const stage = resolveStageFromWebhookEvent(eventType);

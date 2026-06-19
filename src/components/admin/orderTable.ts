@@ -21,7 +21,7 @@ export const wholesalePanelColumnWidths = {
   company: "w-[14%]",
   items: "w-[22%]",
   date: "w-[14%]",
-  progress: "w-[11%]",
+  progress: "w-[10%]",
   tracking: "w-[14%]",
   orderId: "w-[7%]",
 } as const;
