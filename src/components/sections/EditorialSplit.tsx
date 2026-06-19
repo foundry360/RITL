@@ -22,18 +22,6 @@ export function EditorialSplit() {
     <section className="bg-soft-black py-24 lg:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
-          <FadeIn>
-            <div className="relative aspect-[4/5] overflow-hidden rounded-[8px] bg-elevated border border-graphite">
-              <Image
-                src="/philosophy-workspace.png"
-                alt="Hand holding espresso over a notebook and creative workspace"
-                fill
-                className="object-cover object-center"
-                sizes="(max-width: 1024px) 100vw, 50vw"
-              />
-            </div>
-          </FadeIn>
-
           <div>
             <FadeIn delay={100}>
               <SectionLabel>Our Philosophy</SectionLabel>
@@ -59,6 +47,19 @@ export function EditorialSplit() {
               ))}
             </div>
           </div>
+
+          <FadeIn>
+            <div className="overflow-hidden rounded-[8px] border border-graphite bg-elevated">
+              <Image
+                src="/deliberate-living.png"
+                alt="Iced matcha latte and matcha powder with steam rising on a wooden surface"
+                width={733}
+                height={708}
+                className="h-auto w-full"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
+            </div>
+          </FadeIn>
         </div>
       </div>
     </section>

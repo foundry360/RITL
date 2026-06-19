@@ -97,8 +97,8 @@ export function StorySection() {
         <div className="mt-20 grid gap-12 lg:mt-24 lg:grid-cols-2 lg:gap-16 lg:items-center">
           <FadeIn delay={100} className="order-2 lg:order-1">
             <StoryImage
-              src="/story-audience-v5.png"
-              alt="Coffee and conversation at a cafe table"
+              src="/who-is-it-for.png"
+              alt="Professionals working and training with RITÜL coffee in a modern workspace"
             />
           </FadeIn>
 
