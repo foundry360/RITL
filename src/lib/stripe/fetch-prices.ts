@@ -85,6 +85,20 @@ export async function getStripePricingStatus() {
     PURCHASE_TYPES.map((purchaseType) => pricing[productId][purchaseType])
   );
 
+  let stripeAccountId: string | undefined;
+  let stripeMode: "test" | "live" | undefined;
+
+  if (secretKey) {
+    stripeMode = secretKey.startsWith("sk_live_") ? "live" : "test";
+    try {
+      const stripe = getStripe();
+      const account = await stripe.accounts.retrieve();
+      stripeAccountId = account.id;
+    } catch (error) {
+      console.error("Failed to retrieve Stripe account metadata:", error);
+    }
+  }
+
   return {
     secretKeyConfigured: Boolean(secretKey),
     publishableKeyConfigured: Boolean(publishableKey),
@@ -92,6 +106,9 @@ export async function getStripePricingStatus() {
       PURCHASE_TYPES.every((purchaseType) => Boolean(priceIds[productId][purchaseType]))
     ),
     pricesLoadedFromStripe: stripeBacked.every((quote) => quote.source === "stripe"),
+    stripeMode,
+    stripeAccountId,
+    publishableKeyPrefix: publishableKey?.slice(0, 20),
     pricing,
     revalidateSeconds: STRIPE_PRICING_REVALIDATE_SECONDS,
   };
