@@ -80,7 +80,7 @@ const benefits = [
 
 export function BenefitsRITL() {
   return (
-    <section id="benefits" className="bg-near-black py-24 lg:py-32">
+    <section id="benefits" className="bg-elevated py-24 lg:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <FadeIn>
           <div className="max-w-3xl">
@@ -96,7 +96,7 @@ export function BenefitsRITL() {
 
         <div className="mt-16 grid gap-6 lg:grid-cols-2 lg:items-stretch lg:gap-6">
           <FadeIn>
-            <article className="group flex h-full flex-col overflow-hidden rounded-[8px] border border-graphite bg-near-black transition-colors hover:border-graphite/80 hover:bg-soft-black/40">
+            <article className="group flex h-full flex-col overflow-hidden rounded-[8px] border border-graphite bg-near-black transition-colors hover:border-graphite/80 hover:bg-soft-black/60">
               <div className="flex flex-1 flex-col p-5 lg:p-6">
                 <ul className="space-y-5">
                   {benefits.map((benefit) => (

@@ -33,7 +33,7 @@ const faqItems = [
 
 export function FAQSection() {
   return (
-    <section className="bg-soft-black py-24 lg:py-32">
+    <section className="bg-elevated py-24 lg:py-32">
       <div className="mx-auto max-w-3xl px-6 lg:px-8">
         <FadeIn>
           <div className="text-center">

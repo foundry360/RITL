@@ -4,11 +4,12 @@ import {
   getGoogleServiceAccountCredentials,
   isGoogleAnalyticsDataConfigured,
 } from "@/lib/analytics/ga-credentials";
-import {
-  DEFAULT_DASHBOARD_TIME_RANGE,
-  normalizeDashboardDays,
-  type DashboardTimeRange,
-} from "@/lib/admin/stats";
+
+const ANALYTICS_DATE_RANGE = {
+  startDate: "28daysAgo",
+  endDate: "today",
+  label: "Last 28 days",
+} as const;
 
 export interface WebsiteAnalyticsOverview {
   users: number;
@@ -26,7 +27,7 @@ export interface WebsiteAnalyticsDailyPoint {
 }
 
 export interface WebsiteAnalyticsPageRow {
-  path: string;
+  pageTitle: string;
   pageViews: number;
   users: number;
 }
@@ -41,16 +42,36 @@ export interface WebsiteAnalyticsChannelRow {
   sessions: number;
 }
 
+export interface WebsiteAnalyticsRealtime {
+  activeUsersLast30Minutes: number;
+  activeUsersLast5Minutes: number;
+}
+
+export interface WebsiteAnalyticsPageTitleRow {
+  pageTitle: string;
+  screenName: string;
+  pageViews: number;
+}
+
 export interface WebsiteAnalyticsData {
   generatedAt: string;
-  days: DashboardTimeRange;
+  dateRangeLabel: string;
   configured: boolean;
+  realtime: WebsiteAnalyticsRealtime;
   overview: WebsiteAnalyticsOverview;
   dailyTrend: WebsiteAnalyticsDailyPoint[];
   topPages: WebsiteAnalyticsPageRow[];
+  pageTitles: WebsiteAnalyticsPageTitleRow[];
   devices: WebsiteAnalyticsDeviceRow[];
   channels: WebsiteAnalyticsChannelRow[];
   setupMessage?: string;
+}
+
+function createEmptyRealtime(): WebsiteAnalyticsRealtime {
+  return {
+    activeUsersLast30Minutes: 0,
+    activeUsersLast5Minutes: 0,
+  };
 }
 
 function createEmptyOverview(): WebsiteAnalyticsOverview {
@@ -62,14 +83,16 @@ function createEmptyOverview(): WebsiteAnalyticsOverview {
   };
 }
 
-function createEmptyAnalyticsData(days: DashboardTimeRange): WebsiteAnalyticsData {
+function createEmptyAnalyticsData(): WebsiteAnalyticsData {
   return {
     generatedAt: new Date().toISOString(),
-    days,
+    dateRangeLabel: ANALYTICS_DATE_RANGE.label,
     configured: false,
+    realtime: createEmptyRealtime(),
     overview: createEmptyOverview(),
     dailyTrend: [],
     topPages: [],
+    pageTitles: [],
     devices: [],
     channels: [],
     setupMessage:
@@ -133,7 +156,6 @@ function createAnalyticsClient(): BetaAnalyticsDataClient {
 }
 
 async function runGaReport(options: {
-  days: DashboardTimeRange;
   dimensions: string[];
   metrics: string[];
   orderBys?: Array<{ dimension?: string; metric?: string; desc?: boolean }>;
@@ -150,8 +172,8 @@ async function runGaReport(options: {
     property: `properties/${propertyId}`,
     dateRanges: [
       {
-        startDate: `${options.days}daysAgo`,
-        endDate: "today",
+        startDate: ANALYTICS_DATE_RANGE.startDate,
+        endDate: ANALYTICS_DATE_RANGE.endDate,
       },
     ],
     dimensions: options.dimensions.map((name) => ({ name })),
@@ -175,20 +197,92 @@ async function runGaReport(options: {
   return response;
 }
 
-export async function getWebsiteAnalyticsData(
-  days: DashboardTimeRange = DEFAULT_DASHBOARD_TIME_RANGE
-): Promise<WebsiteAnalyticsData> {
-  const normalizedDays = normalizeDashboardDays(days);
+async function runGaRealtimeReport(options: {
+  dimensions?: string[];
+  metrics: string[];
+  dimensionFilter?: {
+    filter: {
+      fieldName: string;
+      inListFilter?: { values: string[] };
+      numericFilter?: {
+        operation: string;
+        value: { int64Value: string };
+      };
+    };
+  };
+  orderBys?: Array<{ metric: string; desc?: boolean }>;
+  limit?: number;
+}) {
+  const propertyId = getGoogleAnalyticsPropertyId();
+  if (!propertyId) {
+    throw new Error("GOOGLE_ANALYTICS_PROPERTY_ID is not configured.");
+  }
 
+  const client = createAnalyticsClient();
+
+  const [response] = await client.runRealtimeReport({
+    property: `properties/${propertyId}`,
+    dimensions: options.dimensions?.map((name) => ({ name })),
+    metrics: options.metrics.map((name) => ({ name })),
+    dimensionFilter: options.dimensionFilter,
+    orderBys: options.orderBys?.map((entry) => ({
+      metric: { metricName: entry.metric },
+      desc: entry.desc ?? true,
+    })),
+    limit: options.limit,
+  });
+
+  return response;
+}
+
+function parseMinutesAgo(value: string | null | undefined): number | null {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function getActiveUsersLast5Minutes(
+  rows: Array<{
+    dimensionValues?: Array<{ value?: string | null }> | null;
+    metricValues?: Array<{ value?: string | null }> | null;
+  }> | null | undefined
+): number {
+  return (rows ?? []).reduce((total, row) => {
+    const minutesAgo = parseMinutesAgo(row.dimensionValues?.[0]?.value);
+    if (minutesAgo === null || minutesAgo >= 5) {
+      return total;
+    }
+
+    return total + parseMetricValue(row.metricValues?.[0]?.value);
+  }, 0);
+}
+
+export async function getWebsiteAnalyticsData(): Promise<WebsiteAnalyticsData> {
   if (!isGoogleAnalyticsDataConfigured()) {
-    return createEmptyAnalyticsData(normalizedDays);
+    return createEmptyAnalyticsData();
   }
 
   try {
-    const [overviewReport, dailyReport, pagesReport, devicesReport, channelsReport] =
-      await Promise.all([
+    const [
+      realtimeOverviewReport,
+      realtimeMinutesReport,
+      overviewReport,
+      dailyReport,
+      pageTitlesReport,
+      devicesReport,
+      channelsReport,
+    ] = await Promise.all([
+        runGaRealtimeReport({
+          metrics: ["activeUsers"],
+        }),
+        runGaRealtimeReport({
+          dimensions: ["minutesAgo"],
+          metrics: ["activeUsers"],
+        }),
         runGaReport({
-          days: normalizedDays,
           dimensions: [],
           metrics: [
             "activeUsers",
@@ -198,33 +292,36 @@ export async function getWebsiteAnalyticsData(
           ],
         }),
         runGaReport({
-          days: normalizedDays,
           dimensions: ["date"],
           metrics: ["activeUsers", "sessions", "screenPageViews"],
           orderBys: [{ dimension: "date" }],
         }),
         runGaReport({
-          days: normalizedDays,
-          dimensions: ["pagePath"],
+          dimensions: ["pageTitle", "unifiedScreenName"],
           metrics: ["screenPageViews", "activeUsers"],
           orderBys: [{ metric: "screenPageViews", desc: true }],
-          limit: 8,
+          limit: 25,
         }),
         runGaReport({
-          days: normalizedDays,
           dimensions: ["deviceCategory"],
           metrics: ["sessions"],
           orderBys: [{ metric: "sessions", desc: true }],
           limit: 5,
         }),
         runGaReport({
-          days: normalizedDays,
           dimensions: ["sessionDefaultChannelGroup"],
           metrics: ["sessions"],
           orderBys: [{ metric: "sessions", desc: true }],
           limit: 6,
         }),
       ]);
+
+    const realtime: WebsiteAnalyticsRealtime = {
+      activeUsersLast30Minutes: parseMetricValue(
+        realtimeOverviewReport.rows?.[0]?.metricValues?.[0]?.value
+      ),
+      activeUsersLast5Minutes: getActiveUsersLast5Minutes(realtimeMinutesReport.rows),
+    };
 
     const overviewRow = overviewReport.rows?.[0]?.metricValues ?? [];
 
@@ -249,12 +346,24 @@ export async function getWebsiteAnalyticsData(
         };
       }) ?? [];
 
-    const topPages: WebsiteAnalyticsPageRow[] =
-      pagesReport.rows?.map((row) => {
+    const pageTitles: WebsiteAnalyticsPageTitleRow[] =
+      pageTitlesReport.rows?.map((row) => {
         const metrics = row.metricValues ?? [];
 
         return {
-          path: row.dimensionValues?.[0]?.value ?? "—",
+          pageTitle: row.dimensionValues?.[0]?.value?.trim() || "—",
+          screenName: row.dimensionValues?.[1]?.value?.trim() || "—",
+          pageViews: parseMetricValue(metrics[0]?.value),
+        };
+      }) ?? [];
+
+    const topPages: WebsiteAnalyticsPageRow[] = pageTitlesReport.rows
+      ?.slice(0, 8)
+      .map((row) => {
+        const metrics = row.metricValues ?? [];
+
+        return {
+          pageTitle: row.dimensionValues?.[0]?.value?.trim() || "—",
           pageViews: parseMetricValue(metrics[0]?.value),
           users: parseMetricValue(metrics[1]?.value),
         };
@@ -274,11 +383,13 @@ export async function getWebsiteAnalyticsData(
 
     return {
       generatedAt: new Date().toISOString(),
-      days: normalizedDays,
+      dateRangeLabel: ANALYTICS_DATE_RANGE.label,
       configured: true,
+      realtime,
       overview,
       dailyTrend,
       topPages,
+      pageTitles,
       devices,
       channels,
     };
@@ -286,7 +397,7 @@ export async function getWebsiteAnalyticsData(
     console.error("Google Analytics data fetch failed:", error);
 
     return {
-      ...createEmptyAnalyticsData(normalizedDays),
+      ...createEmptyAnalyticsData(),
       setupMessage:
         error instanceof Error
           ? error.message

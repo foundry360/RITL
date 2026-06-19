@@ -1,4 +1,4 @@
-import { FadeIn } from "@/components/ui/FadeIn";
+import type { ReactNode } from "react";
 
 const benefits = [
   {
@@ -47,26 +47,67 @@ const benefits = [
   },
 ];
 
+const MARQUEE_COPIES = 4;
+
+function BenefitItem({ label, icon }: { label: string; icon: ReactNode }) {
+  return (
+    <div className="flex shrink-0 items-center gap-3 px-8 text-steel-silver">
+      <span className="opacity-60">{icon}</span>
+      <span className="whitespace-nowrap text-xs tracking-[0.12em] uppercase text-text-secondary">
+        {label}
+      </span>
+    </div>
+  );
+}
+
+function BenefitGroup({ ariaHidden = false }: { ariaHidden?: boolean }) {
+  return (
+    <div
+      className="benefit-marquee-group flex shrink-0 items-center"
+      aria-hidden={ariaHidden || undefined}
+    >
+      {benefits.map((benefit) => (
+        <BenefitItem key={benefit.label} label={benefit.label} icon={benefit.icon} />
+      ))}
+    </div>
+  );
+}
+
 export function BenefitBanner() {
   return (
     <section className="border-y border-graphite bg-soft-black">
-      <FadeIn>
-        <div className="mx-auto max-w-7xl px-6 py-8 lg:px-8">
-          <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-6 lg:justify-between">
-            {benefits.map((benefit) => (
-              <div
-                key={benefit.label}
-                className="flex items-center gap-3 text-steel-silver"
-              >
-                <span className="opacity-60">{benefit.icon}</span>
-                <span className="text-xs tracking-[0.12em] uppercase text-text-secondary whitespace-nowrap">
-                  {benefit.label}
-                </span>
-              </div>
-            ))}
-          </div>
+      <div className="relative overflow-hidden py-8">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-gradient-to-r from-soft-black to-transparent sm:w-20"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l from-soft-black to-transparent sm:w-20"
+        />
+
+        <div
+          className="benefit-marquee-track flex w-max will-change-transform"
+          aria-hidden
+        >
+          {Array.from({ length: MARQUEE_COPIES }, (_, index) => (
+            <BenefitGroup key={index} ariaHidden={index > 0} />
+          ))}
         </div>
-      </FadeIn>
+
+        <div
+          className="benefit-marquee-fallback hidden flex-wrap items-center justify-center gap-x-12 gap-y-6 px-6"
+          aria-label="Product benefits"
+        >
+          {benefits.map((benefit) => (
+            <BenefitItem
+              key={benefit.label}
+              label={benefit.label}
+              icon={benefit.icon}
+            />
+          ))}
+        </div>
+      </div>
     </section>
   );
 }

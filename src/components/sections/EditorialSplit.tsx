@@ -9,7 +9,7 @@ const blocks = [
   },
   {
     title: "The Science",
-    body: "Our formulations combine clean caffeine delivery with clinically-studied nootropics. L-theanine modulates the stimulant response, creating focused alertness without the jittery peak and inevitable crash of conventional coffee.",
+    body: "Our formulations are designed to deliver clean, controlled energy that supports sustained focus and clarity. The result is smooth, consistent alertness without the sharp spikes or abrupt crashes of conventional coffee.",
   },
   {
     title: "The Standard",
@@ -24,7 +24,7 @@ export function EditorialSplit() {
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
           <div>
             <FadeIn delay={100}>
-              <SectionLabel>Our Philosophy</SectionLabel>
+              <SectionLabel>A Different Standard</SectionLabel>
               <SectionHeading className="mt-4">
                 Designed for
                 <br />
@@ -48,8 +48,8 @@ export function EditorialSplit() {
             </div>
           </div>
 
-          <FadeIn>
-            <div className="overflow-hidden rounded-[8px] border border-graphite bg-elevated">
+          <FadeIn className="lg:-my-8">
+            <div className="overflow-hidden rounded-[8px] border border-graphite bg-elevated lg:origin-center lg:scale-[0.92_1.1]">
               <Image
                 src="/deliberate-living.png"
                 alt="Iced matcha latte and matcha powder with steam rising on a wooden surface"

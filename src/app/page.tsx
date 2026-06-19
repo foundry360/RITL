@@ -18,9 +18,9 @@ export default function Home() {
       <Header />
       <main>
         <Hero />
+        <BenefitBanner />
         <CoffeeComparisonSection />
         <StorySection />
-        <BenefitBanner />
         <EditorialSplit />
         <BenefitsRITL />
         <First90DaysSection />

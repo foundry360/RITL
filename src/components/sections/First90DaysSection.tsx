@@ -89,7 +89,7 @@ const phases = [
       "You can clearly evaluate whether it improves your focus, energy, and daily performance",
       "This is the point where most users decide if it's a long-term habit or occasional tool",
     ],
-    goal: "Decide if RITÜL becomes part of your long-term routine.",
+    goal: "RITÜL becomes part of your routine.",
     icon: (
       <svg width="28" height="28" viewBox="0 0 20 20" fill="none" aria-hidden>
         <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1" />
@@ -108,12 +108,7 @@ const phases = [
 
 export function First90DaysSection() {
   return (
-    <section className="relative overflow-hidden border-y border-graphite bg-near-black py-24 lg:py-32">
-      <div
-        className="absolute inset-0 bg-gradient-to-b from-soft-black via-[#12141a] to-near-black"
-        aria-hidden
-      />
-
+    <section className="bg-near-black py-24 lg:py-32">
       <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
         <FadeIn>
           <div className="max-w-6xl">

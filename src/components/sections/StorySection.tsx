@@ -41,7 +41,7 @@ function StoryImage({
 
 export function StorySection() {
   return (
-    <section className="bg-soft-black py-24 lg:py-32">
+    <section className="bg-near-black py-24 lg:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 lg:items-center">
           <div className="space-y-6">

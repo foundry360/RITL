@@ -13,10 +13,13 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { DASHBOARD_TIME_RANGES, type DashboardTimeRange } from "@/lib/admin/stats";
 import type { WebsiteAnalyticsData } from "@/lib/analytics/ga-data";
 import { Button } from "@/components/ui/Button";
-import { cn } from "@/lib/utils";
+import {
+  orderTableCellClass,
+  orderTableClass,
+  orderTableHeaderClass,
+} from "@/components/admin/orderTable";
 
 interface WebsiteAnalyticsPanelProps {
   initialAnalytics: WebsiteAnalyticsData;
@@ -108,30 +111,28 @@ function ChartCard({
   return (
     <section className="rounded-[8px] border border-graphite bg-soft-black/40 p-5">
       <h2 className="text-sm font-medium tracking-wide text-text-primary">{title}</h2>
-      <div className="mt-5 h-72">{children}</div>
+      <div className="mt-5 h-72 w-full min-w-0">{children}</div>
     </section>
   );
 }
 
 export function WebsiteAnalyticsPanel({ initialAnalytics }: WebsiteAnalyticsPanelProps) {
   const [analytics, setAnalytics] = useState(initialAnalytics);
-  const [days, setDays] = useState<DashboardTimeRange>(initialAnalytics.days);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadAnalytics = useCallback(async (range: DashboardTimeRange) => {
+  const refresh = useCallback(async () => {
     setIsRefreshing(true);
     setError(null);
 
     try {
-      const response = await fetch(`/api/admin/analytics?days=${range}`);
+      const response = await fetch("/api/admin/analytics");
       if (!response.ok) {
         throw new Error("Failed to refresh analytics");
       }
 
       const nextAnalytics = (await response.json()) as WebsiteAnalyticsData;
       setAnalytics(nextAnalytics);
-      setDays(nextAnalytics.days);
     } catch (refreshError) {
       setError(
         refreshError instanceof Error
@@ -142,22 +143,6 @@ export function WebsiteAnalyticsPanel({ initialAnalytics }: WebsiteAnalyticsPane
       setIsRefreshing(false);
     }
   }, []);
-
-  const handleRangeChange = useCallback(
-    (range: DashboardTimeRange) => {
-      if (range === days || isRefreshing) {
-        return;
-      }
-
-      setDays(range);
-      void loadAnalytics(range);
-    },
-    [days, isRefreshing, loadAnalytics]
-  );
-
-  const refresh = useCallback(() => {
-    void loadAnalytics(days);
-  }, [days, loadAnalytics]);
 
   return (
     <div className="space-y-8">
@@ -170,38 +155,14 @@ export function WebsiteAnalyticsPanel({ initialAnalytics }: WebsiteAnalyticsPane
             Analytics
           </h1>
           <p className="mt-2 text-sm text-text-secondary">
-            Last {analytics.days} days · Updated {formatAnalyticsTimestamp(analytics.generatedAt)}
+            {analytics.dateRangeLabel} · Updated{" "}
+            {formatAnalyticsTimestamp(analytics.generatedAt)}
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <div
-            className="flex rounded-[8px] border border-graphite p-1"
-            role="group"
-            aria-label="Analytics time range"
-          >
-            {DASHBOARD_TIME_RANGES.map((range) => (
-              <button
-                key={range}
-                type="button"
-                onClick={() => handleRangeChange(range)}
-                disabled={isRefreshing}
-                className={cn(
-                  "rounded-[6px] px-3 py-1.5 text-xs tracking-[0.12em] uppercase transition-colors disabled:opacity-50",
-                  days === range
-                    ? "bg-graphite text-text-primary"
-                    : "text-text-muted hover:text-text-primary"
-                )}
-              >
-                {range}d
-              </button>
-            ))}
-          </div>
-
-          <Button variant="outline" size="sm" onClick={refresh} disabled={isRefreshing}>
-            {isRefreshing ? "Refreshing…" : "Refresh"}
-          </Button>
-        </div>
+        <Button variant="outline" size="sm" onClick={() => void refresh()} disabled={isRefreshing}>
+          {isRefreshing ? "Refreshing…" : "Refresh"}
+        </Button>
       </div>
 
       {error ? (
@@ -237,6 +198,64 @@ export function WebsiteAnalyticsPanel({ initialAnalytics }: WebsiteAnalyticsPane
 
       {analytics.configured ? (
         <>
+      <section className="grid gap-4 sm:grid-cols-2">
+        <StatCard
+          label="Active users · 30 min"
+          value={formatCompactNumber(analytics.realtime.activeUsersLast30Minutes)}
+          detail="Users in the last 30 minutes"
+        />
+        <StatCard
+          label="Active users · 5 min"
+          value={formatCompactNumber(analytics.realtime.activeUsersLast5Minutes)}
+          detail="Users in the last 5 minutes"
+        />
+      </section>
+
+      <section className="rounded-[8px] border border-graphite bg-soft-black/40 p-5">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-sm font-medium tracking-wide text-text-primary">
+              Views by page title and screen name
+            </h2>
+            <p className="mt-1 text-xs text-text-secondary">
+              {analytics.dateRangeLabel}
+            </p>
+          </div>
+        </div>
+
+        {analytics.pageTitles.length > 0 ? (
+          <div className="mt-5 overflow-x-auto">
+            <table className={orderTableClass}>
+              <thead>
+                <tr className="border-b border-graphite">
+                  <th className={`${orderTableHeaderClass} w-[42%]`}>Page title</th>
+                  <th className={`${orderTableHeaderClass} w-[42%]`}>Screen name</th>
+                  <th className={`${orderTableHeaderClass} w-[16%] text-right`}>Views</th>
+                </tr>
+              </thead>
+              <tbody>
+                {analytics.pageTitles.map((page) => (
+                  <tr
+                    key={`${page.pageTitle}:${page.screenName}`}
+                    className="border-b border-graphite/60 last:border-b-0 transition-colors hover:bg-graphite/20"
+                  >
+                    <td className={`${orderTableCellClass} text-text-primary`}>
+                      {page.pageTitle}
+                    </td>
+                    <td className={orderTableCellClass}>{page.screenName}</td>
+                    <td className={`${orderTableCellClass} text-right tabular-nums text-text-primary`}>
+                      {formatCompactNumber(page.pageViews)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="mt-5 text-sm text-text-secondary">No page views in this period yet.</p>
+        )}
+      </section>
+
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Users"
@@ -262,7 +281,7 @@ export function WebsiteAnalyticsPanel({ initialAnalytics }: WebsiteAnalyticsPane
 
       <section className="grid gap-4 xl:grid-cols-2">
         <ChartCard title="Traffic trend">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height={288}>
             <LineChart data={analytics.dailyTrend}>
               <CartesianGrid stroke={CHART_COLORS.grid} strokeDasharray="3 3" vertical={false} />
               <XAxis
@@ -301,7 +320,7 @@ export function WebsiteAnalyticsPanel({ initialAnalytics }: WebsiteAnalyticsPane
         </ChartCard>
 
         <ChartCard title="Page views by day">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height={288}>
             <BarChart data={analytics.dailyTrend}>
               <CartesianGrid stroke={CHART_COLORS.grid} strokeDasharray="3 3" vertical={false} />
               <XAxis
@@ -329,10 +348,10 @@ export function WebsiteAnalyticsPanel({ initialAnalytics }: WebsiteAnalyticsPane
         </ChartCard>
       </section>
 
-      <section className="grid gap-4 xl:grid-cols-2">
+      <section className="grid gap-4 xl:grid-cols-3">
         <ChartCard title="Top pages">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={analytics.topPages} layout="vertical" margin={{ left: 12, right: 12 }}>
+          <ResponsiveContainer width="100%" height={288}>
+            <BarChart data={analytics.topPages} layout="vertical" margin={{ left: 4, right: 12 }}>
               <CartesianGrid stroke={CHART_COLORS.grid} strokeDasharray="3 3" horizontal={false} />
               <XAxis
                 type="number"
@@ -342,11 +361,14 @@ export function WebsiteAnalyticsPanel({ initialAnalytics }: WebsiteAnalyticsPane
               />
               <YAxis
                 type="category"
-                dataKey="path"
-                width={120}
-                tick={{ fill: CHART_COLORS.axis, fontSize: 11 }}
+                dataKey="pageTitle"
+                width={96}
+                tick={{ fill: CHART_COLORS.axis, fontSize: 10 }}
                 axisLine={false}
                 tickLine={false}
+                tickFormatter={(value: string) =>
+                  value.length > 16 ? `${value.slice(0, 16)}…` : value
+                }
               />
               <Tooltip content={<ChartTooltip />} />
               <Bar
@@ -359,61 +381,59 @@ export function WebsiteAnalyticsPanel({ initialAnalytics }: WebsiteAnalyticsPane
           </ResponsiveContainer>
         </ChartCard>
 
-        <div className="grid gap-4">
-          <ChartCard title="Traffic channels">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={analytics.channels}>
-                <CartesianGrid stroke={CHART_COLORS.grid} strokeDasharray="3 3" vertical={false} />
-                <XAxis
-                  dataKey="channel"
-                  tick={{ fill: CHART_COLORS.axis, fontSize: 11 }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  tick={{ fill: CHART_COLORS.axis, fontSize: 11 }}
-                  axisLine={false}
-                  tickLine={false}
-                  width={40}
-                />
-                <Tooltip content={<ChartTooltip />} />
-                <Bar
-                  dataKey="sessions"
-                  name="Sessions"
-                  fill={CHART_COLORS.users}
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartCard>
+        <ChartCard title="Traffic channels">
+          <ResponsiveContainer width="100%" height={288}>
+            <BarChart data={analytics.channels}>
+              <CartesianGrid stroke={CHART_COLORS.grid} strokeDasharray="3 3" vertical={false} />
+              <XAxis
+                dataKey="channel"
+                tick={{ fill: CHART_COLORS.axis, fontSize: 11 }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fill: CHART_COLORS.axis, fontSize: 11 }}
+                axisLine={false}
+                tickLine={false}
+                width={40}
+              />
+              <Tooltip content={<ChartTooltip />} />
+              <Bar
+                dataKey="sessions"
+                name="Sessions"
+                fill={CHART_COLORS.users}
+                radius={[4, 4, 0, 0]}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartCard>
 
-          <ChartCard title="Devices">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={analytics.devices}>
-                <CartesianGrid stroke={CHART_COLORS.grid} strokeDasharray="3 3" vertical={false} />
-                <XAxis
-                  dataKey="device"
-                  tick={{ fill: CHART_COLORS.axis, fontSize: 11 }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  tick={{ fill: CHART_COLORS.axis, fontSize: 11 }}
-                  axisLine={false}
-                  tickLine={false}
-                  width={40}
-                />
-                <Tooltip content={<ChartTooltip />} />
-                <Bar
-                  dataKey="sessions"
-                  name="Sessions"
-                  fill={CHART_COLORS.pageViews}
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartCard>
-        </div>
+        <ChartCard title="Devices">
+          <ResponsiveContainer width="100%" height={288}>
+            <BarChart data={analytics.devices}>
+              <CartesianGrid stroke={CHART_COLORS.grid} strokeDasharray="3 3" vertical={false} />
+              <XAxis
+                dataKey="device"
+                tick={{ fill: CHART_COLORS.axis, fontSize: 11 }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fill: CHART_COLORS.axis, fontSize: 11 }}
+                axisLine={false}
+                tickLine={false}
+                width={40}
+              />
+              <Tooltip content={<ChartTooltip />} />
+              <Bar
+                dataKey="sessions"
+                name="Sessions"
+                fill={CHART_COLORS.pageViews}
+                radius={[4, 4, 0, 0]}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartCard>
       </section>
         </>
       ) : null}

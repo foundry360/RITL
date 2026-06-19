@@ -4,7 +4,20 @@ export function getGoogleAnalyticsPropertyId(): string | undefined {
 }
 
 function normalizePrivateKey(value: string): string {
-  return value.replace(/\\n/g, "\n");
+  let normalized = value.trim();
+
+  if (normalized.endsWith(",")) {
+    normalized = normalized.slice(0, -1).trim();
+  }
+
+  if (
+    (normalized.startsWith('"') && normalized.endsWith('"')) ||
+    (normalized.startsWith("'") && normalized.endsWith("'"))
+  ) {
+    normalized = normalized.slice(1, -1);
+  }
+
+  return normalized.replace(/\\n/g, "\n");
 }
 
 export function getGoogleServiceAccountCredentials():

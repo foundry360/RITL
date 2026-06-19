@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { SiteAnalytics } from "@/components/analytics/SiteAnalytics";
 import { Providers } from "@/components/providers/Providers";
@@ -16,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Functional Coffee | Focus. Clarity. Performance.",
+  title: "RITÜL™ | Clean Focus Coffee",
   description:
     "Premium functional coffee and matcha for cognitive wellness. Clean energy, mental clarity, and daily performance ritual optimization.",
 };
@@ -35,7 +36,9 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-near-black text-text-primary">
         <Providers initialPricing={initialPricing}>{children}</Providers>
-        <SiteAnalytics />
+        <Suspense fallback={null}>
+          <SiteAnalytics />
+        </Suspense>
       </body>
     </html>
   );

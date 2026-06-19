@@ -99,3 +99,28 @@ body {
 .animate-delay-400 {
   animation-delay: 400ms;
 }
+
+@keyframes benefit-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(calc(-100% / var(--marquee-copies, 4)), 0, 0);
+  }
+}
+
+.benefit-marquee-track {
+  --marquee-copies: 4;
+  animation: benefit-marquee 28s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .benefit-marquee-track {
+    animation: none;
+    display: none;
+  }
+
+  .benefit-marquee-fallback {
+    display: flex;
+  }
+}

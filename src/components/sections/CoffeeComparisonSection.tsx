@@ -68,7 +68,7 @@ function PlateauChart() {
 
 export function CoffeeComparisonSection() {
   return (
-    <section className="border-b border-graphite bg-soft-black py-24 lg:py-32">
+    <section className="bg-elevated py-24 lg:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <FadeIn>
           <div className="text-center">
@@ -92,7 +92,7 @@ export function CoffeeComparisonSection() {
           />
 
           <FadeIn delay={100}>
-            <div className="flex h-full flex-col rounded-[8px] border border-graphite bg-elevated p-8">
+            <div className="flex h-full flex-col rounded-[8px] border border-graphite bg-soft-black p-8">
               <p className="text-xs tracking-[0.18em] uppercase text-text-muted">
                 Regular Coffee
               </p>
@@ -119,7 +119,7 @@ export function CoffeeComparisonSection() {
           </FadeIn>
 
           <FadeIn delay={200}>
-            <div className="flex h-full flex-col rounded-[8px] border border-graphite bg-elevated p-8">
+            <div className="flex h-full flex-col rounded-[8px] border border-graphite bg-soft-black p-8">
               <p className="text-xs tracking-[0.18em] uppercase text-accent">
                 Focus Coffee
               </p>

@@ -32,7 +32,7 @@ export function AdminLoginForm() {
         return;
       }
 
-      router.push("/admin/customers");
+      router.push("/admin/dashboard");
       router.refresh();
     } catch (submitError) {
       const message =

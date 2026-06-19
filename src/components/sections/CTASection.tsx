@@ -3,12 +3,7 @@ import { FadeIn } from "@/components/ui/FadeIn";
 
 export function CTASection() {
   return (
-    <section className="relative overflow-hidden bg-soft-black py-24 lg:py-32">
-      <div
-        className="absolute inset-0 bg-gradient-to-b from-[#1c1f26] via-soft-black to-soft-black"
-        aria-hidden
-      />
-
+    <section className="bg-soft-black py-24 lg:py-32">
       <div className="relative mx-auto max-w-3xl px-6 text-center lg:px-8">
         <FadeIn>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-light tracking-tight text-text-primary leading-[1.1]">
