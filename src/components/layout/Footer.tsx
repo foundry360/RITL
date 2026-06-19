@@ -62,7 +62,7 @@ function LockIcon() {
 
 export function Footer() {
   return (
-    <footer className="border-t border-graphite bg-near-black">
+    <footer className="border-t border-graphite bg-black">
       <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8 lg:py-20">
         <div className="flex flex-col gap-12 sm:grid sm:grid-cols-2 lg:flex lg:flex-row lg:items-start lg:justify-between lg:gap-0">
           <div className="lg:max-w-[220px]">

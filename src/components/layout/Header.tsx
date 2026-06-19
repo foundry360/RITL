@@ -10,7 +10,7 @@ const navLinks = [
 
 export function Header() {
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 border-b border-graphite/60 bg-near-black/80 backdrop-blur-md">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-black">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-8">
         <Logo height={32} />
 

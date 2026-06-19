@@ -3,9 +3,9 @@ import { FadeIn } from "@/components/ui/FadeIn";
 
 export function CTASection() {
   return (
-    <section className="relative overflow-hidden bg-near-black py-24 lg:py-32">
+    <section className="relative overflow-hidden bg-soft-black py-24 lg:py-32">
       <div
-        className="absolute inset-0 bg-gradient-to-t from-soft-black via-near-black to-near-black"
+        className="absolute inset-0 bg-gradient-to-b from-[#1c1f26] via-soft-black to-soft-black"
         aria-hidden
       />
 

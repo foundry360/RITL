@@ -13,6 +13,7 @@
   --steel-silver: #c7cbd3;
   --graphite: #2b2f36;
   --violet-gray: #6d6a75;
+  --accent: #e85d24;
 }
 
 @theme inline {
@@ -28,18 +29,39 @@
   --color-steel-silver: var(--steel-silver);
   --color-graphite: var(--graphite);
   --color-violet-gray: var(--violet-gray);
+  --color-accent: var(--accent);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 html {
   scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: #1a1a1a #000000;
 }
 
 body {
   background: var(--near-black);
   color: var(--text-primary);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1a1a1a;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2b2f36;
 }
 
 ::selection {
