@@ -9,6 +9,14 @@ import {
   type AdminOrderSortDirection,
   type AdminOrderSortField,
 } from "@/lib/admin/orders";
+import {
+  ADMIN_ORDER_ITEM_FILTERS,
+  ADMIN_ORDER_PROGRESS_FILTERS,
+  ADMIN_ORDER_TYPE_FILTERS,
+  adminOrdersFilterInputClass,
+  adminOrdersFilterSelectClass,
+  hasActiveAdminOrderFilters,
+} from "@/lib/admin/order-filters";
 import { truncateRoastifyOrderId, formatOrderTypeLabel } from "@/lib/admin/format";
 import { formatPrice } from "@/lib/checkout/format";
 import { Button } from "@/components/ui/Button";
@@ -71,6 +79,11 @@ function buildOrdersUrl(options: {
   pageSize: AdminOrderPageSize;
   sortBy: AdminOrderSortField;
   sortDir: AdminOrderSortDirection;
+  progress: string;
+  productId: string;
+  orderType: string;
+  dateFrom: string;
+  dateTo: string;
 }): string {
   const params = new URLSearchParams({
     page: String(options.page),
@@ -82,6 +95,26 @@ function buildOrdersUrl(options: {
   const trimmedQuery = options.query.trim();
   if (trimmedQuery) {
     params.set("q", trimmedQuery);
+  }
+
+  if (options.progress) {
+    params.set("progress", options.progress);
+  }
+
+  if (options.productId) {
+    params.set("productId", options.productId);
+  }
+
+  if (options.orderType) {
+    params.set("orderType", options.orderType);
+  }
+
+  if (options.dateFrom) {
+    params.set("dateFrom", options.dateFrom);
+  }
+
+  if (options.dateTo) {
+    params.set("dateTo", options.dateTo);
   }
 
   return `/api/admin/orders?${params.toString()}`;
@@ -132,6 +165,11 @@ function FilterIcon() {
 export function OrdersPanel({ initialResult }: OrdersPanelProps) {
   const [result, setResult] = useState(initialResult);
   const [query, setQuery] = useState("");
+  const [progress, setProgress] = useState("");
+  const [productId, setProductId] = useState("");
+  const [orderType, setOrderType] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [pageSize, setPageSize] = useState<AdminOrderPageSize>(
     initialResult.pageSize
   );
@@ -150,6 +188,11 @@ export function OrdersPanel({ initialResult }: OrdersPanelProps) {
       nextPageSize: AdminOrderPageSize;
       nextSortBy: AdminOrderSortField;
       nextSortDir: AdminOrderSortDirection;
+      nextProgress: string;
+      nextProductId: string;
+      nextOrderType: string;
+      nextDateFrom: string;
+      nextDateTo: string;
     }) => {
       setIsLoading(true);
       setError(null);
@@ -162,6 +205,11 @@ export function OrdersPanel({ initialResult }: OrdersPanelProps) {
             pageSize: options.nextPageSize,
             sortBy: options.nextSortBy,
             sortDir: options.nextSortDir,
+            progress: options.nextProgress,
+            productId: options.nextProductId,
+            orderType: options.nextOrderType,
+            dateFrom: options.nextDateFrom,
+            dateTo: options.nextDateTo,
           })
         );
         const data = await response.json();
@@ -192,7 +240,12 @@ export function OrdersPanel({ initialResult }: OrdersPanelProps) {
       page: number,
       nextPageSize: AdminOrderPageSize = pageSize,
       nextSortBy: AdminOrderSortField = sortBy,
-      nextSortDir: AdminOrderSortDirection = sortDir
+      nextSortDir: AdminOrderSortDirection = sortDir,
+      nextProgress: string = progress,
+      nextProductId: string = productId,
+      nextOrderType: string = orderType,
+      nextDateFrom: string = dateFrom,
+      nextDateTo: string = dateTo
     ) => {
       void fetchOrders({
         nextQuery,
@@ -200,9 +253,14 @@ export function OrdersPanel({ initialResult }: OrdersPanelProps) {
         nextPageSize,
         nextSortBy,
         nextSortDir,
+        nextProgress,
+        nextProductId,
+        nextOrderType,
+        nextDateFrom,
+        nextDateTo,
       });
     },
-    [fetchOrders, pageSize, sortBy, sortDir]
+    [fetchOrders, pageSize, sortBy, sortDir, progress, productId, orderType, dateFrom, dateTo]
   );
 
   useEffect(() => {
@@ -216,12 +274,24 @@ export function OrdersPanel({ initialResult }: OrdersPanelProps) {
     }, 300);
 
     return () => window.clearTimeout(timeoutId);
-  }, [query, pageSize, loadOrders]);
+  }, [query, pageSize, progress, productId, orderType, dateFrom, dateTo, loadOrders]);
 
   const { orders, total, page, totalPages } = result;
   const rangeStart = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const rangeEnd = total === 0 ? 0 : Math.min(page * pageSize, total);
-  const hasActiveFilter = query.trim().length > 0;
+  const hasActiveFilter = hasActiveAdminOrderFilters(
+    { progress, productId, orderType, dateFrom, dateTo },
+    query
+  );
+
+  function handleClearFilters() {
+    setQuery("");
+    setProgress("");
+    setProductId("");
+    setOrderType("");
+    setDateFrom("");
+    setDateTo("");
+  }
 
   function handlePageSizeChange(nextPageSize: AdminOrderPageSize) {
     setPageSize(nextPageSize);
@@ -292,6 +362,102 @@ export function OrdersPanel({ initialResult }: OrdersPanelProps) {
             {isLoading ? "Refreshing…" : "Refresh"}
           </Button>
         </div>
+      </div>
+
+      <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          <label className="space-y-2">
+            <span className="text-[10px] tracking-[0.14em] uppercase text-text-muted">
+              Progress
+            </span>
+            <select
+              value={progress}
+              onChange={(event) => setProgress(event.target.value)}
+              aria-label="Filter by progress"
+              className={cn(adminOrdersFilterSelectClass, "w-full")}
+            >
+              {ADMIN_ORDER_PROGRESS_FILTERS.map((option) => (
+                <option key={option.value || "all"} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="space-y-2">
+            <span className="text-[10px] tracking-[0.14em] uppercase text-text-muted">
+              Items
+            </span>
+            <select
+              value={productId}
+              onChange={(event) => setProductId(event.target.value)}
+              aria-label="Filter by items"
+              className={cn(adminOrdersFilterSelectClass, "w-full")}
+            >
+              {ADMIN_ORDER_ITEM_FILTERS.map((option) => (
+                <option key={option.value || "all"} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="space-y-2">
+            <span className="text-[10px] tracking-[0.14em] uppercase text-text-muted">
+              Type
+            </span>
+            <select
+              value={orderType}
+              onChange={(event) => setOrderType(event.target.value)}
+              aria-label="Filter by type"
+              className={cn(adminOrdersFilterSelectClass, "w-full")}
+            >
+              {ADMIN_ORDER_TYPE_FILTERS.map((option) => (
+                <option key={option.value || "all-types"} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="space-y-2">
+            <span className="text-[10px] tracking-[0.14em] uppercase text-text-muted">
+              From
+            </span>
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(event) => setDateFrom(event.target.value)}
+              aria-label="Filter from date"
+              className={cn(adminOrdersFilterInputClass, "w-full")}
+            />
+          </label>
+
+          <label className="space-y-2">
+            <span className="text-[10px] tracking-[0.14em] uppercase text-text-muted">
+              To
+            </span>
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(event) => setDateTo(event.target.value)}
+              aria-label="Filter to date"
+              className={cn(adminOrdersFilterInputClass, "w-full")}
+            />
+          </label>
+        </div>
+
+        {hasActiveFilter ? (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleClearFilters}
+            disabled={isLoading}
+            className="h-11 shrink-0 px-5"
+          >
+            Clear filters
+          </Button>
+        ) : null}
       </div>
 
       {error ? <p className="text-sm text-red-300">{error}</p> : null}

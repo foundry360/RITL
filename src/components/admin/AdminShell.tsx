@@ -8,6 +8,8 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
 const adminTabs = [
+  { href: "/admin/dashboard", label: "Dashboard" },
+  { href: "/admin/analytics", label: "Analytics" },
   { href: "/admin/customers", label: "Customers" },
   { href: "/admin/orders", label: "Orders" },
   { href: "/admin/wholesale", label: "Wholesale" },
@@ -39,7 +41,7 @@ export function AdminShell({ children, userEmail }: AdminShellProps) {
       <header className="border-b border-graphite bg-soft-black/40">
         <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between gap-6 px-6 py-5 lg:px-10">
           <div className="flex items-center gap-8">
-            <Logo height={24} href="/admin/customers" />
+            <Logo height={24} href="/admin/dashboard" />
             <nav className="flex items-center gap-2">
               {adminTabs.map((tab) => (
                 <Link

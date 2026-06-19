@@ -28,6 +28,7 @@ const SENSITIVE_KEYS = new Set([
   "SALESFORCE_REFRESH_TOKEN",
   "SUPABASE_SERVICE_ROLE_KEY",
   "CRON_SECRET",
+  "GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY",
 ]);
 
 function parseEnvFile(filePath) {

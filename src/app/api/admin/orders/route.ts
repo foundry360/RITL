@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { listAdminOrders } from "@/lib/admin/orders";
+import { normalizeAdminOrderDateFilter } from "@/lib/admin/order-filters";
 import { requireAdminSession } from "@/lib/admin/require-session";
 
 export async function GET(request: NextRequest) {
@@ -14,6 +15,13 @@ export async function GET(request: NextRequest) {
   const pageSize = Number(searchParams.get("pageSize") ?? "25");
   const sortBy = searchParams.get("sortBy") ?? undefined;
   const sortDir = searchParams.get("sortDir") ?? undefined;
+  const progress = searchParams.get("progress") ?? undefined;
+  const productId = searchParams.get("productId") ?? undefined;
+  const orderType = searchParams.get("orderType") ?? undefined;
+  const dateFrom = normalizeAdminOrderDateFilter(
+    searchParams.get("dateFrom") ?? undefined
+  );
+  const dateTo = normalizeAdminOrderDateFilter(searchParams.get("dateTo") ?? undefined);
 
   try {
     const result = await listAdminOrders({
@@ -22,6 +30,11 @@ export async function GET(request: NextRequest) {
       pageSize,
       sortBy,
       sortDir,
+      progress: progress || undefined,
+      productId: productId || undefined,
+      orderType: orderType || undefined,
+      dateFrom,
+      dateTo,
     });
     return NextResponse.json(result);
   } catch (error) {

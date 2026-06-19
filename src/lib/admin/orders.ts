@@ -10,6 +10,13 @@ import {
 import type { RoastifyOrderDetail } from "@/lib/roastify/types";
 import { syncRoastifyMetadataToStripe } from "@/lib/roastify/sync-stripe-metadata";
 import type { AdminOrderType } from "@/lib/admin/format";
+import {
+  isAdminOrderTypeFilter,
+  normalizeAdminOrderDateFilter,
+  toOrderFilterDateEnd,
+  toOrderFilterDateStart,
+  type AdminOrderListFilters,
+} from "@/lib/admin/order-filters";
 import { listOrders, getOrderById, syncOrdersFromRoastify, syncOrderFulfillmentFromRoastify } from "@/lib/orders/repository";
 import { orderRecordToAdminDetail, orderRecordToAdminRow } from "@/lib/orders/to-admin";
 import { isOrdersDatabaseConfigured } from "@/lib/supabase/config";
@@ -331,7 +338,7 @@ export interface AdminOrdersListResult {
   sortDir: AdminOrderSortDirection;
 }
 
-export interface ListAdminOrdersOptions {
+export interface ListAdminOrdersOptions extends AdminOrderListFilters {
   query?: string;
   page?: number;
   pageSize?: number;
@@ -432,6 +439,59 @@ function filterAdminOrders(
   });
 }
 
+function applyAdminOrderListFilters(
+  orders: AdminOrderRow[],
+  options: ListAdminOrdersOptions
+): AdminOrderRow[] {
+  let filtered = filterAdminOrders(orders, options.query);
+
+  if (options.progress === "awaiting") {
+    filtered = filtered.filter((order) => !order.roastifyStatus?.trim());
+  } else if (options.progress === "canceled") {
+    filtered = filtered.filter((order) => {
+      const status = order.roastifyStatus?.trim().toLowerCase();
+      return status === "canceled" || status === "cancelled";
+    });
+  } else if (options.progress) {
+    filtered = filtered.filter(
+      (order) =>
+        order.roastifyStatus?.trim().toLowerCase() === options.progress?.toLowerCase()
+    );
+  }
+
+  if (options.productId) {
+    const product = getProduct(options.productId);
+    const productName = product?.name.toLowerCase();
+    filtered = filtered.filter((order) => {
+      const summary = order.itemsSummary.toLowerCase();
+      return (
+        summary.includes(options.productId!.toLowerCase()) ||
+        (productName ? summary.includes(productName) : false)
+      );
+    });
+  }
+
+  if (options.orderType === "unknown") {
+    filtered = filtered.filter((order) => !order.orderType);
+  } else if (options.orderType && isAdminOrderTypeFilter(options.orderType)) {
+    filtered = filtered.filter((order) => order.orderType === options.orderType);
+  }
+
+  const dateFrom = normalizeAdminOrderDateFilter(options.dateFrom);
+  if (dateFrom) {
+    const from = toOrderFilterDateStart(dateFrom);
+    filtered = filtered.filter((order) => order.createdAt >= from);
+  }
+
+  const dateTo = normalizeAdminOrderDateFilter(options.dateTo);
+  if (dateTo) {
+    const to = toOrderFilterDateEnd(dateTo);
+    filtered = filtered.filter((order) => order.createdAt <= to);
+  }
+
+  return filtered;
+}
+
 function sortAdminOrders(
   orders: AdminOrderRow[],
   sortBy: AdminOrderSortField,
@@ -530,6 +590,11 @@ export async function listAdminOrders(
         sortBy,
         sortDir,
         source: "website",
+        progress: options.progress,
+        productId: options.productId,
+        orderType: options.orderType,
+        dateFrom: normalizeAdminOrderDateFilter(options.dateFrom),
+        dateTo: normalizeAdminOrderDateFilter(options.dateTo),
       });
 
       const syncedOrders = await syncOrdersFromRoastify(orders);
@@ -565,7 +630,7 @@ export async function listAdminOrders(
 
   const paymentIntents = await listAllPaymentIntents();
   const allOrders = await buildAdminOrdersFromPaymentIntents(paymentIntents);
-  const filteredOrders = filterAdminOrders(allOrders, options.query);
+  const filteredOrders = applyAdminOrderListFilters(allOrders, options);
   const sortedOrders = sortAdminOrders(filteredOrders, sortBy, sortDir);
   const total = sortedOrders.length;
   const totalPages = total === 0 ? 0 : Math.ceil(total / pageSize);

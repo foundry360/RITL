@@ -603,6 +603,11 @@ export interface ListOrdersOptions {
   sortBy?: string;
   sortDir?: "asc" | "desc";
   source?: "website" | "wholesale";
+  progress?: string;
+  productId?: string;
+  orderType?: string;
+  dateFrom?: string;
+  dateTo?: string;
 }
 
 const SORT_COLUMN_MAP: Record<string, string> = {
@@ -639,6 +644,32 @@ export async function listOrders(
 
   if (options.source) {
     query = query.eq("source", options.source);
+  }
+
+  if (options.progress === "awaiting") {
+    query = query.or("fulfillment_status.is.null,fulfillment_status.eq.");
+  } else if (options.progress === "canceled") {
+    query = query.in("fulfillment_status", ["canceled", "cancelled"]);
+  } else if (options.progress) {
+    query = query.eq("fulfillment_status", options.progress);
+  }
+
+  if (options.productId) {
+    query = query.contains("items", [{ productId: options.productId }]);
+  }
+
+  if (options.orderType === "unknown") {
+    query = query.is("order_type", null);
+  } else if (options.orderType) {
+    query = query.eq("order_type", options.orderType);
+  }
+
+  if (options.dateFrom) {
+    query = query.gte("created_at", `${options.dateFrom}T00:00:00.000Z`);
+  }
+
+  if (options.dateTo) {
+    query = query.lte("created_at", `${options.dateTo}T23:59:59.999Z`);
   }
 
   const normalizedQuery = options.query?.trim().replace(/[,()]/g, " ");
