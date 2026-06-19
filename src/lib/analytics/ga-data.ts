@@ -200,16 +200,6 @@ async function runGaReport(options: {
 async function runGaRealtimeReport(options: {
   dimensions?: string[];
   metrics: string[];
-  dimensionFilter?: {
-    filter: {
-      fieldName: string;
-      inListFilter?: { values: string[] };
-      numericFilter?: {
-        operation: string;
-        value: { int64Value: string };
-      };
-    };
-  };
   orderBys?: Array<{ metric: string; desc?: boolean }>;
   limit?: number;
 }) {
@@ -224,7 +214,6 @@ async function runGaRealtimeReport(options: {
     property: `properties/${propertyId}`,
     dimensions: options.dimensions?.map((name) => ({ name })),
     metrics: options.metrics.map((name) => ({ name })),
-    dimensionFilter: options.dimensionFilter,
     orderBys: options.orderBys?.map((entry) => ({
       metric: { metricName: entry.metric },
       desc: entry.desc ?? true,
