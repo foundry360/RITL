@@ -29,14 +29,14 @@ export function Hero() {
             who optimize every moment. Built for clean, sustained energy and uninterrupted focus
             without crashes, noise, or compromise.
           </p>
-          <div className="animate-fade-up animate-delay-300 mt-10">
-            <ButtonLink href="/#products" size="lg">
+          <div className="mt-10">
+            <ButtonLink href="/#products" variant="outline" size="lg">
               Shop Now
             </ButtonLink>
           </div>
         </div>
 
-        <div className="animate-fade-up animate-delay-200 flex items-center justify-center lg:justify-end">
+        <div className="animate-fade-up animate-delay-200 flex -translate-y-8 items-center justify-center lg:-translate-y-16 lg:justify-end">
           <Image
             src="/hero-brand-cup.png"
             alt="RITÜL logo on a black coffee mug with steam rising"
