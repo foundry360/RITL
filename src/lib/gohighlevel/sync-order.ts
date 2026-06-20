@@ -65,6 +65,17 @@ function formatProductsLine(items: FulfillmentLineItem[]): string {
     .join("\n");
 }
 
+function formatOrderLabel(items: FulfillmentLineItem[]): string {
+  const label = items
+    .map((item) => {
+      const name = products[item.productId]?.name ?? item.productId;
+      return `${name} x${item.quantity}`;
+    })
+    .join(", ");
+
+  return label.length > 200 ? `${label.slice(0, 197)}...` : label;
+}
+
 function formatShippingAddress(
   shipping: NonNullable<Awaited<ReturnType<typeof resolveFulfillmentOrder>>>["shipping"]
 ): string {
@@ -238,6 +249,7 @@ export async function syncGhlOrderFromPaymentIntent(
     },
     currency: paymentIntent.currency,
     products: formatProductsLine(fulfillmentOrder.items),
+    order_label: formatOrderLabel(fulfillmentOrder.items),
     fulfillment_status:
       normalizeFulfillmentStatus(
         paymentIntent.metadata?.ritl_fulfillment_status

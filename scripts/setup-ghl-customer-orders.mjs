@@ -18,6 +18,13 @@ const ORDER_FIELDS = [
     placeholder: "pi_...",
   },
   {
+    key: "order_label",
+    name: "Order Label",
+    dataType: "TEXT",
+    description: "Short label shown on the contact record (product summary)",
+    placeholder: "Focus Coffee x1",
+  },
+  {
     key: "order_date",
     name: "Order Date",
     dataType: "DATE",
@@ -188,8 +195,8 @@ async function createCustomerOrdersObject(apiToken, locationId) {
       key: OBJECT_KEY,
       description: "RITUL website orders synced from Stripe",
       primaryDisplayPropertyDetails: {
-        key: "order_id",
-        name: "Order ID",
+        key: "order_label",
+        name: "Order Label",
         dataType: "TEXT",
       },
     },
@@ -300,6 +307,101 @@ function findContactOrdersAssociation(associations) {
   });
 }
 
+async function updateObjectSearchableProperties(apiToken, locationId, object) {
+  await ghlRequest(apiToken, `/objects/${encodeURIComponent(SCHEMA_KEY)}`, {
+    method: "PUT",
+    body: {
+      locationId,
+      labels: object.labels ?? {
+        singular: "Customer Order",
+        plural: "Customer Orders",
+      },
+      description:
+        object.description ?? "RITUL website orders synced from Stripe",
+      searchableProperties: [
+        `${SCHEMA_KEY}.order_label`,
+        `${SCHEMA_KEY}.order_id`,
+        `${SCHEMA_KEY}.roastify_order_id`,
+      ],
+    },
+  });
+}
+
+function productsToOrderLabel(productsValue) {
+  if (typeof productsValue !== "string" || !productsValue.trim()) {
+    return undefined;
+  }
+
+  const label = productsValue.replace(/\s*\n\s*/g, ", ").trim();
+  return label.length > 200 ? `${label.slice(0, 197)}...` : label;
+}
+
+async function backfillOrderLabels(apiToken, locationId) {
+  let page = 1;
+  let updated = 0;
+
+  while (page <= 10) {
+    const data = await ghlRequest(
+      apiToken,
+      `/objects/${encodeURIComponent(SCHEMA_KEY)}/records/search`,
+      {
+        method: "POST",
+        body: {
+          locationId,
+          query: "",
+          page,
+          pageLimit: 50,
+        },
+      }
+    );
+
+    const records = Array.isArray(data.records) ? data.records : [];
+    if (records.length === 0) {
+      break;
+    }
+
+    for (const record of records) {
+      const properties = record.properties ?? {};
+      if (properties.order_label || !properties.products) {
+        continue;
+      }
+
+      const orderLabel = productsToOrderLabel(properties.products);
+      if (!orderLabel) {
+        continue;
+      }
+
+      await ghlRequest(
+        apiToken,
+        `/objects/${encodeURIComponent(SCHEMA_KEY)}/records/${encodeURIComponent(record.id)}?locationId=${encodeURIComponent(locationId)}`,
+        {
+          method: "PUT",
+          body: {
+            properties: {
+              order_label: orderLabel,
+            },
+          },
+        }
+      );
+      updated += 1;
+    }
+
+    if (records.length < 50) {
+      break;
+    }
+    page += 1;
+  }
+
+  return updated;
+}
+
+function printPrimaryDisplayInstructions() {
+  console.log("\nShow product names on contact records (instead of pi_...):");
+  console.log("  1. GHL → Settings → Objects → Customer Orders → Settings");
+  console.log("  2. Set Primary Display Property to: Order Label");
+  console.log("  (GHL only allows changing this in the UI, not via API.)");
+}
+
 async function createContactOrdersAssociation(apiToken, locationId) {
   return ghlRequest(apiToken, "/associations/", {
     method: "POST",
@@ -393,6 +495,26 @@ async function main() {
     throw error;
   }
 
+  console.log("\n→ Updating searchable properties...");
+  try {
+    await updateObjectSearchableProperties(apiToken, locationId, object);
+    console.log("✓ Searchable properties updated");
+  } catch (error) {
+    console.warn("Could not update searchable properties:", error.message);
+  }
+
+  console.log("\n→ Backfilling order labels on existing records...");
+  try {
+    const updated = await backfillOrderLabels(apiToken, locationId);
+    if (updated > 0) {
+      console.log(`✓ Backfilled order_label on ${updated} record(s)`);
+    } else {
+      console.log("✓ Order labels already set");
+    }
+  } catch (error) {
+    console.warn("Could not backfill order labels:", error.message);
+  }
+
   console.log("\n→ Ensuring contact ↔ order association...");
   let associations = [];
   try {
@@ -433,6 +555,7 @@ async function main() {
   console.log(
     `\nDone.${objectCreated ? " Customer Orders is ready in GHL." : ""} Next: wire order sync in the app after you confirm the object looks right in GHL.`
   );
+  printPrimaryDisplayInstructions();
 }
 
 main().catch((error) => {
