@@ -17,7 +17,7 @@ import {
   toOrderFilterDateStart,
   type AdminOrderListFilters,
 } from "@/lib/admin/order-filters";
-import { listOrders, getOrderById, syncOrdersFromRoastify, syncOrderFulfillmentFromRoastify } from "@/lib/orders/repository";
+import { listOrders, getOrderById, getOrderByStripePaymentIntentId, syncOrdersFromRoastify, syncOrderFulfillmentFromRoastify } from "@/lib/orders/repository";
 import { orderRecordToAdminDetail, orderRecordToAdminRow } from "@/lib/orders/to-admin";
 import { isOrdersDatabaseConfigured } from "@/lib/supabase/config";
 import type { PurchaseType } from "@/lib/stripe/products";
@@ -297,12 +297,20 @@ export async function buildAdminOrdersFromPaymentIntents(
   await Promise.allSettled(
     rows
       .filter((row) => row.roastifyOrder)
-      .map((row) =>
-        syncRoastifyMetadataToStripe(row.paymentIntent, row.roastifyOrder!, {
+      .map(async (row) => {
+        if (isOrdersDatabaseConfigured()) {
+          const order = await getOrderByStripePaymentIntentId(row.paymentIntent.id);
+          if (order?.roastify_order_id) {
+            await syncOrderFulfillmentFromRoastify(order, row.roastifyOrder!);
+            return;
+          }
+        }
+
+        await syncRoastifyMetadataToStripe(row.paymentIntent, row.roastifyOrder!, {
           notifyCustomer: false,
-          syncGhl: false,
-        })
-      )
+          syncGhl: true,
+        });
+      })
   );
 
   return rows.map(({ paymentIntent, roastifyOrder }) =>
@@ -699,7 +707,7 @@ export async function getAdminOrder(orderId: string): Promise<AdminOrderDetail |
       roastifyOrder = await getRoastifyOrder(roastifyOrderId);
       await syncRoastifyMetadataToStripe(paymentIntent, roastifyOrder, {
         notifyCustomer: false,
-        syncGhl: false,
+        syncGhl: true,
       });
     } catch (error) {
       console.error(`Roastify order fetch failed for ${roastifyOrderId}:`, error);
