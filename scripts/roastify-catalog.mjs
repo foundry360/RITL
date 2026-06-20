@@ -7,7 +7,7 @@ export const ROASTIFY_PRODUCTS = [
     skuEnvKey: "ROASTIFY_SKU_FOCUS_COFFEE",
     artworkEnvKey: "ROASTIFY_ARTWORK_URL_FOCUS_COFFEE",
     defaultArtworkUrl:
-      "https://storage.roastify.app/design-upload/d6a1ea02-c5ec-42fc-a3fe-7cacf28d16df.jpeg",
+      "https://storage.roastify.app/design-upload/2da560c2-5ee4-4a51-926d-5f7751d2a1d9.jpeg",
   },
   {
     productId: "matcha",
@@ -15,6 +15,6 @@ export const ROASTIFY_PRODUCTS = [
     skuEnvKey: "ROASTIFY_SKU_MATCHA",
     artworkEnvKey: "ROASTIFY_ARTWORK_URL_MATCHA",
     defaultArtworkUrl:
-      "https://storage.roastify.app/design-upload/86a5813f-8b5c-4d54-980d-ec4fa698697e.jpeg",
+      "https://storage.roastify.app/design-upload/8a4175a7-d590-47f5-8d81-84e625e9eb1c.jpeg",
   },
 ];

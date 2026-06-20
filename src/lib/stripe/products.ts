@@ -59,6 +59,12 @@ export interface Product {
   gallery?: ProductGalleryItem[];
 }
 
+const FOCUS_COFFEE_VIEWER_URL =
+  "https://viewer.roastify.app?productType=Tubes&artworkUrl=https://storage.roastify.app/design-upload/2da560c2-5ee4-4a51-926d-5f7751d2a1d9.jpeg";
+
+const MATCHA_VIEWER_URL =
+  "https://viewer.roastify.app?productType=Tubes&artworkUrl=https://storage.roastify.app/design-upload/8a4175a7-d590-47f5-8d81-84e625e9eb1c.jpeg";
+
 export const products: Record<ProductId, Product> = {
   "focus-coffee": {
     id: "focus-coffee",
@@ -75,8 +81,7 @@ export const products: Record<ProductId, Product> = {
     subscriptionIntervalWeeks: 4,
     variant: "focus",
     thumbnailSrc: "/products/focus-checkout-thumb.png",
-    viewerUrl:
-      "https://viewer.roastify.app?productType=Tubes&artworkUrl=https://storage.roastify.app/design-upload/d6a1ea02-c5ec-42fc-a3fe-7cacf28d16df.jpeg",
+    viewerUrl: FOCUS_COFFEE_VIEWER_URL,
     features: [
       "L-Theanine for calm alertness",
       "120mg clean caffeine",
@@ -164,8 +169,7 @@ export const products: Record<ProductId, Product> = {
       {
         id: "interactive-viewer",
         type: "viewer",
-        viewerUrl:
-          "https://viewer.roastify.app?productType=Tubes&artworkUrl=https://storage.roastify.app/design-upload/d6a1ea02-c5ec-42fc-a3fe-7cacf28d16df.jpeg",
+        viewerUrl: FOCUS_COFFEE_VIEWER_URL,
         alt: "Focus Coffee interactive product view",
         label: "3D View",
         thumbnailSrc: "/products/focus-3d-thumb.png",
@@ -187,8 +191,7 @@ export const products: Record<ProductId, Product> = {
     subscriptionIntervalWeeks: 4,
     variant: "matcha",
     thumbnailSrc: "/products/matcha-checkout-thumb.png",
-    viewerUrl:
-      "https://viewer.roastify.app?productType=Tubes&artworkUrl=https://storage.roastify.app/design-upload/86a5813f-8b5c-4d54-980d-ec4fa698697e.jpeg",
+    viewerUrl: MATCHA_VIEWER_URL,
     features: [
       "Ceremonial-grade sourcing",
       "Smooth L-theanine release",
@@ -289,8 +292,7 @@ export const products: Record<ProductId, Product> = {
       {
         id: "interactive-viewer",
         type: "viewer",
-        viewerUrl:
-          "https://viewer.roastify.app?productType=Tubes&artworkUrl=https://storage.roastify.app/design-upload/86a5813f-8b5c-4d54-980d-ec4fa698697e.jpeg",
+        viewerUrl: MATCHA_VIEWER_URL,
         alt: "Matcha interactive product view",
         label: "3D View",
         thumbnailSrc: "/products/matcha-tube-mockup.png",
