@@ -32,6 +32,16 @@ export function getGhlCustomerTags(): string[] {
     .filter(Boolean);
 }
 
+export function getGhlWebsiteLeadTag(): string {
+  return process.env.GHL_WEBSITE_LEAD_TAG?.trim() || "website-lead";
+}
+
+export function getGhlWebsiteLeadResubmitTag(): string {
+  return (
+    process.env.GHL_WEBSITE_LEAD_RESUBMIT_TAG?.trim() || "website-lead-returning"
+  );
+}
+
 export function getGhlStripeCustomerFieldId(): string | undefined {
   const value = process.env.GHL_STRIPE_CUSTOMER_FIELD_ID?.trim();
   return value || undefined;

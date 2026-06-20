@@ -53,6 +53,14 @@ async function main() {
   const tags = process.env.GHL_CUSTOMER_TAGS?.trim() || "ritul-customer";
   console.log(`  Customer tags: ${tags}`);
 
+  const websiteLeadTag =
+    process.env.GHL_WEBSITE_LEAD_TAG?.trim() || "website-lead";
+  console.log(`  Website lead tag (new): ${websiteLeadTag}`);
+
+  const websiteLeadResubmitTag =
+    process.env.GHL_WEBSITE_LEAD_RESUBMIT_TAG?.trim() || "website-lead-returning";
+  console.log(`  Website lead tag (resubmit): ${websiteLeadResubmitTag}`);
+
   if (process.env.GHL_STRIPE_CUSTOMER_FIELD_ID?.trim()) {
     console.log(
       `  Stripe field: ${process.env.GHL_STRIPE_CUSTOMER_FIELD_ID.trim()}`
@@ -62,7 +70,7 @@ async function main() {
   }
 
   console.log(
-    "\nGoHighLevel is ready. Stripe payment_intent.succeeded events will upsert contacts and apply customer tags."
+    "\nGoHighLevel is ready. Purchases sync customer tags; new modal signups use the new-lead tag; resubmits use the resubmit tag."
   );
 }
 

@@ -44,10 +44,6 @@ export interface Product {
   tagline: string;
   description: string;
   longDescription: string;
-  price: number;
-  priceLabel: string;
-  subscriptionPrice: number;
-  subscriptionPriceLabel: string;
   subscriptionIntervalWeeks: number;
   variant: "focus" | "matcha";
   features: string[];
@@ -74,10 +70,6 @@ export const products: Record<ProductId, Product> = {
       "A refined functional blend engineered for alert clarity and sustained mental performance.",
     longDescription:
       "Focus Coffee is formulated for those who demand precision from their morning ritual. Clean caffeine delivery paired with nootropic compounds supports sharp attention without the noise of conventional coffee.",
-    price: 48,
-    priceLabel: "$48",
-    subscriptionPrice: 40.8,
-    subscriptionPriceLabel: "$40.80",
     subscriptionIntervalWeeks: 4,
     variant: "focus",
     thumbnailSrc: "/products/focus-checkout-thumb.png",
@@ -184,10 +176,6 @@ export const products: Record<ProductId, Product> = {
       "Ceremonial-grade matcha with functional enhancements for smooth, sustained cognitive energy.",
     longDescription:
       "Our Matcha delivers the meditative clarity of ceremonial-grade green tea with a functional edge. Clean, sustained energy builds gradually, supporting steady focus throughout your day.",
-    price: 52,
-    priceLabel: "$52",
-    subscriptionPrice: 44.2,
-    subscriptionPriceLabel: "$44.20",
     subscriptionIntervalWeeks: 4,
     variant: "matcha",
     thumbnailSrc: "/products/matcha-checkout-thumb.png",
@@ -303,24 +291,6 @@ export const products: Record<ProductId, Product> = {
 
 export function getProduct(id: string): Product | undefined {
   return products[id as ProductId];
-}
-
-export function getProductUnitPrice(
-  product: Product,
-  purchaseType: PurchaseType
-): number {
-  return purchaseType === "subscription"
-    ? product.subscriptionPrice
-    : product.price;
-}
-
-export function getProductPriceLabel(
-  product: Product,
-  purchaseType: PurchaseType
-): string {
-  return purchaseType === "subscription"
-    ? product.subscriptionPriceLabel
-    : product.priceLabel;
 }
 
 export function getStripePriceId(

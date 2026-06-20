@@ -1,5 +1,6 @@
 import type { ProductPricingMap } from "@/lib/stripe/pricing";
 import { ContactChatWidget } from "@/components/contact/ContactChatWidget";
+import { WebsiteLeadModal } from "@/components/marketing/WebsiteLeadModal";
 import { CartProvider } from "@/context/CartContext";
 import { PricingProvider } from "@/context/PricingContext";
 
@@ -13,6 +14,7 @@ export function Providers({ children, initialPricing }: ProvidersProps) {
     <PricingProvider initialPricing={initialPricing}>
       <CartProvider>
         {children}
+        <WebsiteLeadModal />
         <ContactChatWidget />
       </CartProvider>
     </PricingProvider>

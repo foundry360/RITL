@@ -1,7 +1,6 @@
 import { formatPrice } from "@/lib/checkout/format";
 import {
   products,
-  type Product,
   type ProductId,
   type PurchaseType,
 } from "@/lib/stripe/products";
@@ -17,20 +16,17 @@ export type ProductPricingMap = Record<
   Record<PurchaseType, PriceQuote>
 >;
 
+const UNAVAILABLE_PRICE_QUOTE: PriceQuote = {
+  amount: 0,
+  label: "—",
+  source: "fallback",
+};
+
 export function buildFallbackPricing(): ProductPricingMap {
   return (Object.keys(products) as ProductId[]).reduce((map, productId) => {
-    const product = products[productId];
     map[productId] = {
-      "one-time": {
-        amount: product.price,
-        label: product.priceLabel,
-        source: "fallback",
-      },
-      subscription: {
-        amount: product.subscriptionPrice,
-        label: product.subscriptionPriceLabel,
-        source: "fallback",
-      },
+      "one-time": UNAVAILABLE_PRICE_QUOTE,
+      subscription: UNAVAILABLE_PRICE_QUOTE,
     };
     return map;
   }, {} as ProductPricingMap);
@@ -58,22 +54,6 @@ export function getPriceLabel(
   purchaseType: PurchaseType
 ): string {
   return getPriceQuote(pricing, productId, purchaseType).label;
-}
-
-export function applyPricingToProduct(
-  product: Product,
-  pricing: ProductPricingMap
-): Product {
-  const oneTime = pricing[product.id]["one-time"];
-  const subscription = pricing[product.id].subscription;
-
-  return {
-    ...product,
-    price: oneTime.amount,
-    priceLabel: oneTime.label,
-    subscriptionPrice: subscription.amount,
-    subscriptionPriceLabel: subscription.label,
-  };
 }
 
 export function formatStripeAmount(unitAmount: number, currency: string): string {

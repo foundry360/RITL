@@ -3,7 +3,6 @@ import { recordAbandonedCheckout } from "@/lib/abandoned-checkout/repository";
 import { isStripeSecretConfigured } from "@/lib/stripe/config";
 import { createCheckoutPayment, type CheckoutItemInput } from "@/lib/stripe/create-payment";
 import { getStripePricing } from "@/lib/stripe/fetch-prices";
-import { getUnitPrice } from "@/lib/stripe/pricing";
 import type { ProductId, PurchaseType } from "@/lib/stripe/products";
 
 interface CheckoutItem {
@@ -63,6 +62,8 @@ export async function POST(request: NextRequest) {
     const checkoutReference =
       typeof body.checkoutReference === "string" ? body.checkoutReference : undefined;
     const email = typeof body.email === "string" ? body.email.trim() : "";
+    const promoCode =
+      typeof body.promoCode === "string" ? body.promoCode.trim() : undefined;
 
     if (!email) {
       return NextResponse.json(
@@ -76,22 +77,16 @@ export async function POST(request: NextRequest) {
       checkoutItems,
       pricing,
       checkoutReference,
-      email
+      email,
+      promoCode
     );
-
-    const amountCents = checkoutItems.reduce((total, item) => {
-      const unitAmount = Math.round(
-        getUnitPrice(pricing, item.productId, item.purchaseType) * 100
-      );
-      return total + unitAmount * item.quantity;
-    }, 0);
 
     try {
       await recordAbandonedCheckout({
         email,
         checkoutReference,
         items: checkoutItems,
-        amountCents,
+        amountCents: payment.totalCents,
       });
     } catch (error) {
       console.error("Failed to record abandoned checkout:", error);

@@ -10,6 +10,11 @@ import { getCardOnlyPaymentMethodConfigurationId } from "@/lib/stripe/payment-me
 import { getUnitPrice, type ProductPricingMap } from "@/lib/stripe/pricing";
 import { getStripe } from "@/lib/stripe/server";
 import {
+  calculateDiscountCents,
+  resolvePromotionCode,
+  type ResolvedPromoCode,
+} from "@/lib/stripe/promo-code";
+import {
   getProduct,
   getStripePriceId,
   type ProductId,
@@ -26,6 +31,10 @@ export interface CheckoutPaymentResult {
   clientSecret: string;
   mode: "payment" | "subscription";
   customerId: string;
+  subtotalCents: number;
+  discountCents: number;
+  totalCents: number;
+  promoCode?: string;
 }
 
 function getItemUnitAmountCents(
@@ -36,18 +45,28 @@ function getItemUnitAmountCents(
   return Math.round(amount * 100);
 }
 
+function getCheckoutSubtotalCents(
+  items: CheckoutItemInput[],
+  pricing: ProductPricingMap
+): number {
+  return items.reduce(
+    (total, item) => total + getItemUnitAmountCents(pricing, item) * item.quantity,
+    0
+  );
+}
+
 async function createOneTimePaymentIntent(
   items: CheckoutItemInput[],
   pricing: ProductPricingMap,
   paymentMethodConfiguration: string,
   checkoutReference?: string,
-  email?: string
+  email?: string,
+  promo?: ResolvedPromoCode | null
 ): Promise<CheckoutPaymentResult> {
   const stripe = getStripe();
-  const amount = items.reduce(
-    (total, item) => total + getItemUnitAmountCents(pricing, item) * item.quantity,
-    0
-  );
+  const subtotalCents = getCheckoutSubtotalCents(items, pricing);
+  const discountCents = promo ? calculateDiscountCents(subtotalCents, promo) : 0;
+  const amount = subtotalCents - discountCents;
 
   if (amount <= 0) {
     throw new Error("Order total must be greater than zero.");
@@ -76,6 +95,12 @@ async function createOneTimePaymentIntent(
         ...(checkoutReference
           ? { ritl_checkout_reference: checkoutReference }
           : {}),
+        ...(promo
+          ? {
+              ritl_promo_code: promo.code,
+              ritl_discount_cents: String(discountCents),
+            }
+          : {}),
       },
     },
     checkoutReference
@@ -91,6 +116,10 @@ async function createOneTimePaymentIntent(
     clientSecret: paymentIntent.client_secret,
     mode: "payment",
     customerId,
+    subtotalCents,
+    discountCents,
+    totalCents: amount,
+    promoCode: promo?.code,
   };
 }
 
@@ -112,8 +141,10 @@ function getOneTimePriceId(item: CheckoutItemInput): string {
 
 async function createSubscriptionPayment(
   items: CheckoutItemInput[],
+  pricing: ProductPricingMap,
   checkoutReference?: string,
-  email?: string
+  email?: string,
+  promo?: ResolvedPromoCode | null
 ): Promise<CheckoutPaymentResult> {
   const stripe = getStripe();
   const subscriptionItems = items.filter(
@@ -135,6 +166,9 @@ async function createSubscriptionPayment(
     }))
   );
 
+  const subtotalCents = getCheckoutSubtotalCents(items, pricing);
+  const discountCents = promo ? calculateDiscountCents(subtotalCents, promo) : 0;
+
   const subscriptionParams: Stripe.SubscriptionCreateParams = {
     customer: customerId,
     items: subscriptionItems.map((item) => ({
@@ -152,8 +186,18 @@ async function createSubscriptionPayment(
       ...(checkoutReference
         ? { ritl_checkout_reference: checkoutReference }
         : {}),
+      ...(promo
+        ? {
+            ritl_promo_code: promo.code,
+            ritl_discount_cents: String(discountCents),
+          }
+        : {}),
     },
   };
+
+  if (promo?.promotionCodeId) {
+    subscriptionParams.discounts = [{ promotion_code: promo.promotionCodeId }];
+  }
 
   if (oneTimeItems.length > 0) {
     subscriptionParams.add_invoice_items = oneTimeItems.map((item) => ({
@@ -191,6 +235,12 @@ async function createSubscriptionPayment(
         ...(checkoutReference
           ? { ritl_checkout_reference: checkoutReference }
           : {}),
+        ...(promo
+          ? {
+              ritl_promo_code: promo.code,
+              ritl_discount_cents: String(discountCents),
+            }
+          : {}),
       },
     });
   }
@@ -199,6 +249,10 @@ async function createSubscriptionPayment(
     clientSecret,
     mode: "subscription",
     customerId,
+    subtotalCents,
+    discountCents,
+    totalCents: subtotalCents - discountCents,
+    promoCode: promo?.code,
   };
 }
 
@@ -206,11 +260,25 @@ export async function createCheckoutPayment(
   items: CheckoutItemInput[],
   pricing: ProductPricingMap,
   checkoutReference?: string,
-  email?: string
+  email?: string,
+  promoCode?: string
 ): Promise<CheckoutPaymentResult> {
   for (const item of items) {
     if (!getProduct(item.productId)) {
       throw new Error(`Invalid product: ${item.productId}`);
+    }
+  }
+
+  const promo = promoCode ? await resolvePromotionCode(promoCode) : null;
+  if (promoCode && !promo) {
+    throw new Error("Invalid or expired promo code.");
+  }
+
+  const subtotalCents = getCheckoutSubtotalCents(items, pricing);
+  if (promo) {
+    const discountCents = calculateDiscountCents(subtotalCents, promo);
+    if (discountCents <= 0) {
+      throw new Error("Promo code does not apply to this order.");
     }
   }
 
@@ -220,7 +288,13 @@ export async function createCheckoutPayment(
   const hasSubscription = items.some((item) => item.purchaseType === "subscription");
 
   if (hasSubscription) {
-    return createSubscriptionPayment(items, checkoutReference, email);
+    return createSubscriptionPayment(
+      items,
+      pricing,
+      checkoutReference,
+      email,
+      promo
+    );
   }
 
   return createOneTimePaymentIntent(
@@ -228,6 +302,7 @@ export async function createCheckoutPayment(
     pricing,
     paymentMethodConfiguration,
     checkoutReference,
-    email
+    email,
+    promo
   );
 }

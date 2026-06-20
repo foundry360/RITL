@@ -4,38 +4,7 @@ import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import Stripe from "stripe";
 import { isPlaceholder, loadProjectEnv } from "./load-env.mjs";
-
-const CATALOG = [
-  {
-    productId: "focus-coffee",
-    name: "Focus Coffee",
-    description:
-      "A refined functional blend engineered for alert clarity and sustained mental performance.",
-    oneTimeAmount: 4800,
-    subscriptionAmount: 4080,
-    intervalWeeks: 4,
-  },
-  {
-    productId: "matcha",
-    name: "Matcha",
-    description:
-      "Ceremonial-grade matcha with functional enhancements for smooth, sustained cognitive energy.",
-    oneTimeAmount: 5200,
-    subscriptionAmount: 4420,
-    intervalWeeks: 4,
-  },
-];
-
-const ENV_KEYS = {
-  "focus-coffee": {
-    "one-time": "STRIPE_PRICE_FOCUS_COFFEE",
-    subscription: "STRIPE_PRICE_FOCUS_COFFEE_SUBSCRIPTION",
-  },
-  matcha: {
-    "one-time": "STRIPE_PRICE_MATCHA",
-    subscription: "STRIPE_PRICE_MATCHA_SUBSCRIPTION",
-  },
-};
+import { STRIPE_CATALOG, STRIPE_ENV_KEYS } from "./stripe-catalog.mjs";
 
 function loadEnvFile(filePath) {
   if (!existsSync(filePath)) return {};
@@ -78,7 +47,7 @@ function upsertEnvValue(filePath, key, value) {
 }
 
 async function ensurePrice(stripe, productId, type, config) {
-  const envKey = ENV_KEYS[productId][type];
+  const envKey = STRIPE_ENV_KEYS[productId][type];
   const existingPriceId = process.env[envKey];
 
   if (existingPriceId) {
@@ -142,10 +111,10 @@ async function main() {
     console.log("Created .env.local from .env.example");
   }
 
-  for (const item of CATALOG) {
+  for (const item of STRIPE_CATALOG) {
     for (const type of ["one-time", "subscription"]) {
       const priceId = await ensurePrice(stripe, item.productId, type, item);
-      const envKey = ENV_KEYS[item.productId][type];
+      const envKey = STRIPE_ENV_KEYS[item.productId][type];
       upsertEnvValue(envLocalPath, envKey, priceId);
       process.env[envKey] = priceId;
     }

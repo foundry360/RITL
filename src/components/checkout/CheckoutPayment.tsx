@@ -7,6 +7,7 @@ import type { CheckoutLineItem } from "@/components/checkout/CheckoutOrderSummar
 import {
   getCheckoutItemsKey,
   getCheckoutReference,
+  getCheckoutSessionKey,
   readCachedCheckout,
   writeCachedCheckout,
 } from "@/lib/checkout/session";
@@ -17,6 +18,7 @@ import { Button } from "@/components/ui/Button";
 interface CheckoutPaymentProps {
   items: CheckoutLineItem[];
   cancelHref?: string;
+  promoCode?: string;
 }
 
 interface CheckoutPaymentState {
@@ -24,9 +26,14 @@ interface CheckoutPaymentState {
   mode: "payment" | "subscription";
   customerId: string;
   email: string;
+  promoCode?: string;
 }
 
-export function CheckoutPayment({ items, cancelHref = "/cart" }: CheckoutPaymentProps) {
+export function CheckoutPayment({
+  items,
+  cancelHref = "/cart",
+  promoCode,
+}: CheckoutPaymentProps) {
   const [paymentState, setPaymentState] = useState<CheckoutPaymentState | null>(
     null
   );
@@ -42,21 +49,32 @@ export function CheckoutPayment({ items, cancelHref = "/cart" }: CheckoutPayment
     () => getCheckoutItemsKey(checkoutItems),
     [checkoutItems]
   );
+  const sessionKey = useMemo(
+    () => getCheckoutSessionKey(itemsKey, promoCode),
+    [itemsKey, promoCode]
+  );
 
   useEffect(() => {
-    const cached = readCachedCheckout(itemsKey);
-    if (cached?.customerId && cached.email) {
+    const cached = readCachedCheckout(sessionKey);
+    if (
+      cached?.customerId &&
+      cached.email &&
+      (cached.promoCode ?? "") === (promoCode?.trim().toUpperCase() ?? "")
+    ) {
       setPaymentState(cached);
       setEmail(cached.email);
+      return;
     }
-  }, [itemsKey]);
+
+    setPaymentState(null);
+  }, [sessionKey, promoCode]);
 
   async function initializePayment(checkoutEmail: string) {
     setIsLoading(true);
     setError(null);
 
     try {
-      const checkoutReference = getCheckoutReference(itemsKey);
+      const checkoutReference = getCheckoutReference(sessionKey);
       const response = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -64,6 +82,7 @@ export function CheckoutPayment({ items, cancelHref = "/cart" }: CheckoutPayment
           items: checkoutItems,
           checkoutReference,
           email: checkoutEmail,
+          ...(promoCode ? { promoCode } : {}),
         }),
       });
 
@@ -78,9 +97,10 @@ export function CheckoutPayment({ items, cancelHref = "/cart" }: CheckoutPayment
         mode: data.mode,
         customerId: data.customerId,
         email: checkoutEmail,
+        promoCode: promoCode?.trim().toUpperCase(),
       };
 
-      writeCachedCheckout(itemsKey, nextState);
+      writeCachedCheckout(sessionKey, nextState);
       setPaymentState(nextState);
       setEmail(checkoutEmail);
     } catch (initializationError) {

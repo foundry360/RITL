@@ -102,11 +102,7 @@ function buildOrderLineItems(
         name: product?.name ?? item.productId,
         quantity: item.quantity,
         purchaseType: item.purchaseType,
-        unitLabel: product
-          ? item.purchaseType === "subscription"
-            ? product.subscriptionPriceLabel
-            : product.priceLabel
-          : "—",
+        unitLabel: "—",
       };
     }
   );

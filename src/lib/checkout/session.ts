@@ -3,6 +3,7 @@ export interface CachedCheckoutState {
   mode: "payment" | "subscription";
   customerId: string;
   email: string;
+  promoCode?: string;
 }
 
 const CHECKOUT_REF_PREFIX = "ritl-checkout-ref:";
@@ -30,12 +31,20 @@ export function getCheckoutItemsKey(
   );
 }
 
-export function getCheckoutReference(itemsKey: string): string {
+export function getCheckoutSessionKey(
+  itemsKey: string,
+  promoCode?: string
+): string {
+  const normalizedPromo = promoCode?.trim().toUpperCase();
+  return normalizedPromo ? `${itemsKey}::promo:${normalizedPromo}` : itemsKey;
+}
+
+export function getCheckoutReference(sessionKey: string): string {
   if (!isBrowser()) {
     return "";
   }
 
-  const storageKey = `${CHECKOUT_REF_PREFIX}${itemsKey}`;
+  const storageKey = `${CHECKOUT_REF_PREFIX}${sessionKey}`;
   const existing = sessionStorage.getItem(storageKey);
   if (existing) {
     return existing;
@@ -47,13 +56,13 @@ export function getCheckoutReference(itemsKey: string): string {
 }
 
 export function readCachedCheckout(
-  itemsKey: string
+  sessionKey: string
 ): CachedCheckoutState | null {
   if (!isBrowser()) {
     return null;
   }
 
-  const raw = sessionStorage.getItem(`${CHECKOUT_STATE_PREFIX}${itemsKey}`);
+  const raw = sessionStorage.getItem(`${CHECKOUT_STATE_PREFIX}${sessionKey}`);
   if (!raw) {
     return null;
   }
@@ -66,7 +75,7 @@ export function readCachedCheckout(
 }
 
 export function writeCachedCheckout(
-  itemsKey: string,
+  sessionKey: string,
   state: CachedCheckoutState
 ): void {
   if (!isBrowser()) {
@@ -74,7 +83,7 @@ export function writeCachedCheckout(
   }
 
   sessionStorage.setItem(
-    `${CHECKOUT_STATE_PREFIX}${itemsKey}`,
+    `${CHECKOUT_STATE_PREFIX}${sessionKey}`,
     JSON.stringify(state)
   );
 }

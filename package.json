@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "stripe:setup": "node scripts/setup-stripe.mjs",
+    "stripe:setup:promo": "node scripts/setup-stripe-promo.mjs",
     "stripe:verify": "node scripts/verify-stripe.mjs",
     "stripe:webhook:setup": "node scripts/setup-stripe-webhook.mjs",
     "stripe:webhook:verify": "node scripts/verify-stripe-webhook.mjs",

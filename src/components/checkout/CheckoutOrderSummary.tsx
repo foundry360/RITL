@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { OrderLineItemThumbnail } from "@/components/checkout/OrderLineItemThumbnail";
+import type { AppliedPromo } from "@/components/checkout/PromoCodeField";
+import { PromoCodeField } from "@/components/checkout/PromoCodeField";
 import { usePricing } from "@/context/PricingContext";
 import { cartItemKey } from "@/lib/cart/types";
 import type { ProductId, PurchaseType } from "@/lib/stripe/products";
@@ -17,6 +19,8 @@ export interface CheckoutLineItem {
 interface CheckoutOrderSummaryProps {
   items: CheckoutLineItem[];
   showEditLink?: boolean;
+  appliedPromo?: AppliedPromo | null;
+  onPromoChange?: (promo: AppliedPromo | null) => void;
 }
 
 function getPurchaseTypeLabel(purchaseType: PurchaseType): string {
@@ -26,6 +30,8 @@ function getPurchaseTypeLabel(purchaseType: PurchaseType): string {
 export function CheckoutOrderSummary({
   items,
   showEditLink = true,
+  appliedPromo = null,
+  onPromoChange,
 }: CheckoutOrderSummaryProps) {
   const { getUnitPrice, getPriceLabel } = usePricing();
 
@@ -38,6 +44,10 @@ export function CheckoutOrderSummary({
   const hasSubscription = items.some(
     (item) => (item.purchaseType ?? "one-time") === "subscription"
   );
+  const discountAmount = appliedPromo ? appliedPromo.discountCents / 100 : 0;
+  const estimatedTotal = appliedPromo
+    ? appliedPromo.totalCents / 100
+    : subtotal;
 
   return (
     <div className="rounded-[8px] border border-graphite bg-soft-black/40">
@@ -94,6 +104,14 @@ export function CheckoutOrderSummary({
         })}
       </ul>
 
+      {onPromoChange && (
+        <PromoCodeField
+          items={items}
+          appliedPromo={appliedPromo}
+          onPromoChange={onPromoChange}
+        />
+      )}
+
       <div className="space-y-3 border-t border-graphite px-6 py-5">
         <div className="flex items-center justify-between">
           <span className="text-xs tracking-[0.12em] uppercase text-text-muted">
@@ -103,6 +121,16 @@ export function CheckoutOrderSummary({
             {formatPrice(subtotal)}
           </span>
         </div>
+        {appliedPromo && (
+          <div className="flex items-center justify-between">
+            <span className="text-xs tracking-[0.12em] uppercase text-text-muted">
+              Discount ({appliedPromo.code})
+            </span>
+            <span className="text-sm tabular-nums text-accent">
+              -{formatPrice(discountAmount)}
+            </span>
+          </div>
+        )}
         <div className="flex items-center justify-between">
           <span className="text-xs tracking-[0.12em] uppercase text-text-muted">
             Shipping
@@ -116,7 +144,7 @@ export function CheckoutOrderSummary({
             {hasSubscription ? "Due today" : "Estimated total"}
           </span>
           <span className="text-lg font-light tabular-nums text-text-primary">
-            {formatPrice(subtotal)}
+            {formatPrice(estimatedTotal)}
           </span>
         </div>
       </div>

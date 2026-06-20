@@ -20,7 +20,7 @@ export function CTASection() {
               Get Started
             </ButtonLink>
             <ButtonLink href="/#products" variant="outline" size="lg">
-              Shop Functional Coffee
+              Shop RITÜL
             </ButtonLink>
           </div>
         </FadeIn>

@@ -2,11 +2,7 @@ import { EMAIL_BRAND_NAME, EMAIL_COLORS, getEmailAppUrl } from "@/lib/email/bran
 import { escapeHtml } from "@/lib/email/escape-html";
 import { buildEmailShell, emailSectionLabel } from "@/lib/email/layout";
 import type { AbandonedCheckoutItem } from "@/lib/abandoned-checkout/types";
-import {
-  getProduct,
-  getProductPriceLabel,
-  type PurchaseType,
-} from "@/lib/stripe/products";
+import { getProduct, type PurchaseType } from "@/lib/stripe/products";
 
 function formatPurchaseTypeLabel(purchaseType: PurchaseType): string {
   return purchaseType === "subscription" ? "Subscription" : "One-time";
@@ -16,9 +12,6 @@ function buildLineItemsHtml(items: AbandonedCheckoutItem[]): string {
   const rows = items.map((item) => {
     const product = getProduct(item.productId);
     const name = product?.name ?? item.productId;
-    const unitLabel = product
-      ? getProductPriceLabel(product, item.purchaseType)
-      : "";
     const cadence =
       item.purchaseType === "subscription" && product
         ? ` · every ${product.subscriptionIntervalWeeks} weeks`
@@ -30,7 +23,6 @@ function buildLineItemsHtml(items: AbandonedCheckoutItem[]): string {
           ${escapeHtml(name)} × ${item.quantity}
           <div style="margin-top: 4px; font-size: 13px; color: ${EMAIL_COLORS.textMuted};">
             ${escapeHtml(formatPurchaseTypeLabel(item.purchaseType))}${escapeHtml(cadence)}
-            ${unitLabel ? ` · ${escapeHtml(unitLabel)} each` : ""}
           </div>
         </td>
       </tr>`;
