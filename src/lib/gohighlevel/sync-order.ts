@@ -13,6 +13,27 @@ import {
 import { resolveFulfillmentOrder } from "@/lib/roastify/resolve-fulfillment-order";
 import { products } from "@/lib/stripe/products";
 
+async function resolvePaymentIntentIdForGhlLookup(
+  paymentIntentId?: string | null,
+  roastifyOrderId?: string | null
+): Promise<string | undefined> {
+  const direct = paymentIntentId?.trim();
+  if (direct) {
+    return direct;
+  }
+
+  const roastifyId = roastifyOrderId?.trim();
+  if (!roastifyId) {
+    return undefined;
+  }
+
+  const { findPaymentIntentByRoastifyOrderId } = await import(
+    "@/lib/roastify/sync-stripe-metadata"
+  );
+  const paymentIntent = await findPaymentIntentByRoastifyOrderId(roastifyId);
+  return paymentIntent?.id;
+}
+
 export interface GhlOrderSyncResult {
   orderRecordId: string;
   created: boolean;
@@ -297,7 +318,10 @@ export async function syncGhlOrderFulfillmentProgress(
     return null;
   }
 
-  const paymentIntentId = input.stripePaymentIntentId?.trim();
+  const paymentIntentId = await resolvePaymentIntentIdForGhlLookup(
+    input.stripePaymentIntentId,
+    input.roastifyOrderId
+  );
   const roastifyOrderId = input.roastifyOrderId?.trim();
   if (!paymentIntentId && !roastifyOrderId) {
     return null;
@@ -311,21 +335,22 @@ export async function syncGhlOrderFulfillmentProgress(
     existing = await findOrderRecordByRoastifyOrderId(roastifyOrderId);
   }
   if (!existing?.id) {
+    console.warn(
+      `GHL order record not found (pi=${paymentIntentId ?? "none"}, roastify=${roastifyOrderId ?? "none"})`
+    );
     return { updated: false };
   }
 
-  const updates = buildFulfillmentPropertyUpdates(input);
+  const updates = buildFulfillmentPropertyUpdates({
+    ...input,
+    stripePaymentIntentId: paymentIntentId,
+  });
   if (Object.keys(updates).length === 0) {
     return { updated: false, orderRecordId: existing.id };
   }
 
-  const mergedProperties = {
-    ...(existing.properties ?? {}),
-    ...updates,
-  };
-
   try {
-    await updateOrderRecord(existing.id, mergedProperties);
+    await updateOrderRecord(existing.id, updates);
   } catch (error) {
     const hasTrackingFields = Boolean(
       updates.tracking_number || updates.tracking_url || updates.carrier
@@ -343,10 +368,7 @@ export async function syncGhlOrderFulfillmentProgress(
       throw error;
     }
 
-    await updateOrderRecord(existing.id, {
-      ...(existing.properties ?? {}),
-      ...statusOnlyUpdates,
-    });
+    await updateOrderRecord(existing.id, statusOnlyUpdates);
     console.warn(
       `GHL order fulfillment synced without tracking fields for ${paymentIntentId ?? roastifyOrderId}`
     );
@@ -363,6 +385,10 @@ export async function syncGhlOrderFulfillmentProgressSafe(
     if (result?.updated) {
       console.info(
         `GHL order fulfillment synced for ${input.stripePaymentIntentId ?? input.roastifyOrderId}`
+      );
+    } else if (result && !result.updated) {
+      console.warn(
+        `GHL order fulfillment not updated for ${input.stripePaymentIntentId ?? input.roastifyOrderId}`
       );
     }
   } catch (error) {

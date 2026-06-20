@@ -30,12 +30,48 @@ import type {
 } from "@/lib/orders/types";
 import { isOrdersDatabaseConfigured } from "@/lib/supabase/config";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
+import { findPaymentIntentByRoastifyOrderId } from "@/lib/roastify/sync-stripe-metadata";
 
 const ORDERS_TABLE = "orders";
 const MAX_WEBHOOK_IDS = 20;
 
 function normalizeStatus(value?: string | null): string | undefined {
   return normalizeFulfillmentStatus(value);
+}
+
+function resolveStoredFulfillmentStatus(
+  previousStatus: string | undefined,
+  apiStatus: string | undefined,
+  eventType: string
+): string | undefined {
+  const eventStage = resolveStageFromWebhookEvent(eventType);
+  const eventStatus =
+    eventStage && eventStage !== "tracking" ? eventStage : undefined;
+
+  let resolved = previousStatus;
+  for (const candidate of [apiStatus, eventStatus]) {
+    const normalized = normalizeStatus(candidate);
+    if (!normalized) {
+      continue;
+    }
+    resolved =
+      resolveForwardFulfillmentStatus(resolved, normalized) ?? resolved;
+  }
+
+  return resolved;
+}
+
+async function resolveStripePaymentIntentIdForOrder(
+  roastifyOrderId: string,
+  existing?: string | null
+): Promise<string | null> {
+  const current = existing?.trim();
+  if (current) {
+    return current;
+  }
+
+  const paymentIntent = await findPaymentIntentByRoastifyOrderId(roastifyOrderId);
+  return paymentIntent?.id ?? null;
 }
 
 function parseItems(value: unknown): FulfillmentLineItem[] {
@@ -336,15 +372,23 @@ export async function applyRoastifyWebhookUpdate(
   }
 
   const previousStatus = normalizeStatus(order.fulfillment_status);
-  const storedStatus =
-    resolveForwardFulfillmentStatus(previousStatus, input.fulfillmentStatus) ??
-    previousStatus;
+  const storedStatus = resolveStoredFulfillmentStatus(
+    previousStatus,
+    input.fulfillmentStatus,
+    input.eventType
+  );
   const statusAdvanced = Boolean(storedStatus && storedStatus !== previousStatus);
+  const stripePaymentIntentId = await resolveStripePaymentIntentIdForOrder(
+    input.roastifyOrderId,
+    order.stripe_payment_intent_id
+  );
 
   const { data, error } = await supabase
     .from(ORDERS_TABLE)
     .update({
       fulfillment_status: storedStatus ?? order.fulfillment_status,
+      stripe_payment_intent_id:
+        stripePaymentIntentId ?? order.stripe_payment_intent_id,
       tracking_number: input.trackingNumber ?? order.tracking_number,
       tracking_url: input.trackingUrl ?? order.tracking_url,
       carrier: input.carrier ?? order.carrier,
