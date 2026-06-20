@@ -2,6 +2,7 @@ import type Stripe from "stripe";
 import type { AdminOrderType } from "@/lib/admin/format";
 import type { FulfillmentLineItem } from "@/lib/fulfillment/types";
 import type { OrderRecord } from "@/lib/orders/types";
+import { normalizeFulfillmentStatus } from "@/lib/roastify/status";
 import { ghlRequest } from "@/lib/gohighlevel/client";
 import {
   getGhlContactOrdersAssociationId,
@@ -156,12 +157,12 @@ async function updateOrderRecord(
   properties: Record<string, unknown>
 ): Promise<void> {
   const schemaKey = getGhlCustomerOrdersSchemaKey();
+  const locationId = encodeURIComponent(getGhlLocationId());
   await ghlRequest(
-    `/objects/${encodeURIComponent(schemaKey)}/records/${encodeURIComponent(recordId)}`,
+    `/objects/${encodeURIComponent(schemaKey)}/records/${encodeURIComponent(recordId)}?locationId=${locationId}`,
     {
       method: "PUT",
       body: {
-        locationId: getGhlLocationId(),
         properties,
       },
     }
@@ -217,7 +218,9 @@ export async function syncGhlOrderFromPaymentIntent(
     currency: paymentIntent.currency,
     products: formatProductsLine(fulfillmentOrder.items),
     fulfillment_status:
-      paymentIntent.metadata?.ritl_fulfillment_status ?? "created",
+      normalizeFulfillmentStatus(
+        paymentIntent.metadata?.ritl_fulfillment_status
+      ) ?? "created",
     roastify_order_id: paymentIntent.metadata?.ritl_roastify_order_id,
     shipping_address: formatShippingAddress(fulfillmentOrder.shipping),
     stripe_customer_id: fulfillmentOrder.stripeCustomerId,
@@ -267,7 +270,9 @@ function buildFulfillmentPropertyUpdates(
   const updates: Record<string, unknown> = {};
 
   if (input.fulfillmentStatus) {
-    updates.fulfillment_status = input.fulfillmentStatus;
+    updates.fulfillment_status =
+      normalizeFulfillmentStatus(input.fulfillmentStatus) ??
+      input.fulfillmentStatus;
   }
   if (input.roastifyOrderId) {
     updates.roastify_order_id = input.roastifyOrderId;

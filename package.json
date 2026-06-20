@@ -22,7 +22,8 @@
     "salesforce:authorize": "node scripts/salesforce-authorize.mjs",
     "salesforce:verify": "node scripts/verify-salesforce.mjs",
     "ghl:verify": "node scripts/verify-ghl.mjs",
-    "ghl:setup:orders": "node scripts/setup-ghl-customer-orders.mjs"
+    "ghl:setup:orders": "node scripts/setup-ghl-customer-orders.mjs",
+    "ghl:backfill:fulfillment": "npx tsx scripts/backfill-ghl-fulfillment.ts"
   },
   "dependencies": {
     "@google-analytics/data": "^6.1.0",

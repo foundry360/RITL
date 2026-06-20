@@ -1,5 +1,8 @@
 import { sendOrderStageUpdateEmail } from "@/lib/email/send-order-stage-update";
-import { syncGhlOrderFulfillmentFromOrderRecord } from "@/lib/gohighlevel/sync-order";
+import {
+  syncGhlOrderFulfillmentFromOrderRecord,
+  syncGhlOrderFulfillmentProgressSafe,
+} from "@/lib/gohighlevel/sync-order";
 import type { AdminOrderType } from "@/lib/admin/format";
 import type { FulfillmentLineItem } from "@/lib/fulfillment/types";
 import { getRoastifyOrder } from "@/lib/roastify/client";
@@ -465,7 +468,22 @@ export async function syncOrderFulfillmentFromRoastify(
     }
 
     currentOrder = mapRow(data);
-    await syncGhlOrderFulfillmentFromOrderRecord(currentOrder);
+  }
+
+  const ghlFulfillmentStatus = ignoredStaleStatus
+    ? currentOrder.fulfillment_status
+    : storedStatus ?? incomingStatus;
+
+  if (ghlFulfillmentStatus) {
+    await syncGhlOrderFulfillmentProgressSafe({
+      stripePaymentIntentId: currentOrder.stripe_payment_intent_id,
+      roastifyOrderId:
+        currentOrder.roastify_order_id ?? roastifyOrder.orderId ?? null,
+      fulfillmentStatus: ghlFulfillmentStatus,
+      trackingNumber: tracking.trackingNumber ?? currentOrder.tracking_number,
+      trackingUrl: tracking.trackingUrl ?? currentOrder.tracking_url,
+      carrier: tracking.carrier ?? currentOrder.carrier,
+    });
   }
 
   if (!statusAdvanced || !storedStatus) {

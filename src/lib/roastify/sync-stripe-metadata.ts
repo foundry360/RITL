@@ -13,6 +13,8 @@ import { getStripe } from "@/lib/stripe/server";
 export interface SyncRoastifyMetadataOptions {
   notifyCustomer?: boolean;
   webhookId?: string;
+  /** When false, skips pushing fulfillment updates to GoHighLevel (e.g. admin read paths). */
+  syncGhl?: boolean;
 }
 
 export async function notifyRoastifyStageEmailIfNeeded(
@@ -102,14 +104,16 @@ export async function syncRoastifyMetadataToStripe(
     });
   }
 
-  await syncGhlOrderFulfillmentProgressSafe({
-    stripePaymentIntentId: paymentIntent.id,
-    roastifyOrderId: roastifyOrder.orderId,
-    fulfillmentStatus: roastifyStatus,
-    trackingNumber: tracking.trackingNumber,
-    trackingUrl: tracking.trackingUrl,
-    carrier: tracking.carrier,
-  });
+  if (options?.syncGhl !== false) {
+    await syncGhlOrderFulfillmentProgressSafe({
+      stripePaymentIntentId: paymentIntent.id,
+      roastifyOrderId: roastifyOrder.orderId,
+      fulfillmentStatus: roastifyStatus,
+      trackingNumber: tracking.trackingNumber,
+      trackingUrl: tracking.trackingUrl,
+      carrier: tracking.carrier,
+    });
+  }
 
   if (options?.notifyCustomer !== true) {
     return;
