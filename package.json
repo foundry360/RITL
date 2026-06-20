@@ -19,6 +19,7 @@
     "orders:migrate": "node scripts/apply-orders-migration.mjs",
     "abandoned-checkout:migrate": "node scripts/apply-orders-migration.mjs supabase/migrations/002_abandoned_checkouts.sql",
     "orders:sync": "npx tsx scripts/sync-orders-fulfillment.ts",
+    "orders:repair": "npx tsx scripts/repair-orders.ts",
     "salesforce:authorize": "node scripts/salesforce-authorize.mjs",
     "salesforce:verify": "node scripts/verify-salesforce.mjs",
     "ghl:verify": "node scripts/verify-ghl.mjs",

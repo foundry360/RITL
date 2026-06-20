@@ -31,6 +31,9 @@ import type {
 import { isOrdersDatabaseConfigured } from "@/lib/supabase/config";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { findPaymentIntentByRoastifyOrderId } from "@/lib/roastify/sync-stripe-metadata";
+import { buildWebsiteOrderInputFromMetadata } from "@/lib/orders/from-stripe";
+import { isStripeSecretConfigured } from "@/lib/stripe/config";
+import { getStripe } from "@/lib/stripe/server";
 
 const ORDERS_TABLE = "orders";
 const MAX_WEBHOOK_IDS = 20;
@@ -207,23 +210,30 @@ export async function upsertWebsiteOrder(
     return null;
   }
 
+  const existing = await getOrderByStripePaymentIntentId(input.stripePaymentIntentId);
+  const fulfillment_status =
+    normalizeStatus(input.fulfillmentStatus) ??
+    normalizeStatus(existing?.fulfillment_status) ??
+    "created";
+
   const supabase = createSupabaseServiceClient();
   const payload = {
     source: "website" as const,
     stripe_payment_intent_id: input.stripePaymentIntentId,
-    stripe_customer_id: input.stripeCustomerId ?? null,
+    stripe_customer_id: input.stripeCustomerId ?? existing?.stripe_customer_id ?? null,
     amount_cents: input.amountCents,
     currency: input.currency,
-    order_type: input.orderType ?? null,
-    customer_name: input.customerName ?? null,
-    customer_email: input.customerEmail ?? null,
-    shipping_address: input.shippingAddress ?? null,
+    order_type: input.orderType ?? existing?.order_type ?? null,
+    customer_name: input.customerName ?? existing?.customer_name ?? null,
+    customer_email: input.customerEmail ?? existing?.customer_email ?? null,
+    shipping_address: input.shippingAddress ?? existing?.shipping_address ?? null,
     items: input.items,
-    roastify_order_id: input.roastifyOrderId ?? null,
-    fulfillment_status: normalizeStatus(input.fulfillmentStatus) ?? null,
+    roastify_order_id:
+      input.roastifyOrderId ?? existing?.roastify_order_id ?? null,
+    fulfillment_status,
     confirmation_email_sent_at: input.confirmationEmailSent
       ? new Date().toISOString()
-      : null,
+      : existing?.confirmation_email_sent_at ?? null,
   };
 
   const { data, error } = await supabase
@@ -322,6 +332,83 @@ export async function getOrderByRoastifyOrderId(
   return data ? mapRow(data) : null;
 }
 
+async function mergeWholesaleOrderIntoWebsite(
+  website: OrderRecord,
+  wholesale: OrderRecord
+): Promise<OrderRecord> {
+  const supabase = createSupabaseServiceClient();
+  const mergedStatus =
+    resolveForwardFulfillmentStatus(
+      normalizeStatus(website.fulfillment_status),
+      normalizeStatus(wholesale.fulfillment_status)
+    ) ??
+    normalizeStatus(website.fulfillment_status) ??
+    normalizeStatus(wholesale.fulfillment_status) ??
+    "created";
+
+  const { error: deleteError } = await supabase
+    .from(ORDERS_TABLE)
+    .delete()
+    .eq("id", wholesale.id);
+
+  if (deleteError) {
+    throw new Error(deleteError.message);
+  }
+
+  const { data, error } = await supabase
+    .from(ORDERS_TABLE)
+    .update({
+      roastify_order_id: wholesale.roastify_order_id ?? website.roastify_order_id,
+      fulfillment_status: mergedStatus,
+      tracking_number: wholesale.tracking_number ?? website.tracking_number,
+      tracking_url: wholesale.tracking_url ?? website.tracking_url,
+      carrier: wholesale.carrier ?? website.carrier,
+      roastify_updated_at:
+        wholesale.roastify_updated_at ?? website.roastify_updated_at,
+      stage_emails_sent: [
+        ...new Set([...website.stage_emails_sent, ...wholesale.stage_emails_sent]),
+      ],
+      webhook_ids_processed: [
+        ...new Set([
+          ...website.webhook_ids_processed,
+          ...wholesale.webhook_ids_processed,
+        ]),
+      ].slice(-MAX_WEBHOOK_IDS),
+    })
+    .eq("id", website.id)
+    .select("*")
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  console.info(
+    `Merged wholesale order ${wholesale.id} into website order ${website.id}`
+  );
+
+  return mapRow(data);
+}
+
+async function resolveCanonicalOrderForRoastifyWebhook(
+  roastifyOrderId: string
+): Promise<OrderRecord | null> {
+  const roastifyLinked = await getOrderByRoastifyOrderId(roastifyOrderId);
+  const stripePaymentIntentId = await resolveStripePaymentIntentIdForOrder(
+    roastifyOrderId,
+    roastifyLinked?.stripe_payment_intent_id
+  );
+  const websiteOrder = stripePaymentIntentId
+    ? await getOrderByStripePaymentIntentId(stripePaymentIntentId)
+    : null;
+
+  if (websiteOrder && roastifyLinked && websiteOrder.id !== roastifyLinked.id) {
+    return mergeWholesaleOrderIntoWebsite(websiteOrder, roastifyLinked);
+  }
+
+  return websiteOrder ?? roastifyLinked;
+}
+
 export async function applyRoastifyWebhookUpdate(
   input: ApplyRoastifyWebhookInput
 ): Promise<ApplyRoastifyWebhookResult> {
@@ -335,18 +422,29 @@ export async function applyRoastifyWebhookUpdate(
   }
 
   const supabase = createSupabaseServiceClient();
-  let order = await getOrderByRoastifyOrderId(input.roastifyOrderId);
+  let order = await resolveCanonicalOrderForRoastifyWebhook(input.roastifyOrderId);
 
   if (!order) {
+    const stripePaymentIntentId = await resolveStripePaymentIntentIdForOrder(
+      input.roastifyOrderId
+    );
+    const initialStatus =
+      resolveStoredFulfillmentStatus(
+        undefined,
+        input.fulfillmentStatus,
+        input.eventType
+      ) ?? "created";
+
     const { data, error } = await supabase
       .from(ORDERS_TABLE)
       .insert({
-        source: "wholesale",
+        source: stripePaymentIntentId ? "website" : "wholesale",
+        stripe_payment_intent_id: stripePaymentIntentId,
         roastify_order_id: input.roastifyOrderId,
         customer_name: input.customerName ?? null,
         customer_email: input.customerEmail ?? null,
         shipping_address: input.shippingAddress ?? null,
-        fulfillment_status: normalizeStatus(input.fulfillmentStatus) ?? null,
+        fulfillment_status: initialStatus,
         tracking_number: input.trackingNumber ?? null,
         tracking_url: input.trackingUrl ?? null,
         carrier: input.carrier ?? null,
@@ -386,7 +484,9 @@ export async function applyRoastifyWebhookUpdate(
   const { data, error } = await supabase
     .from(ORDERS_TABLE)
     .update({
-      fulfillment_status: storedStatus ?? order.fulfillment_status,
+      fulfillment_status:
+        storedStatus ?? order.fulfillment_status ?? "created",
+      roastify_order_id: input.roastifyOrderId ?? order.roastify_order_id,
       stripe_payment_intent_id:
         stripePaymentIntentId ?? order.stripe_payment_intent_id,
       tracking_number: input.trackingNumber ?? order.tracking_number,
@@ -802,4 +902,64 @@ export async function getOrderById(orderId: string): Promise<OrderRecord | null>
   }
 
   return null;
+}
+
+export async function repairOrdersInDatabase(): Promise<{
+  merged: number;
+  backfilled: number;
+}> {
+  if (!isOrdersDatabaseConfigured()) {
+    return { merged: 0, backfilled: 0 };
+  }
+
+  let merged = 0;
+  let backfilled = 0;
+  const supabase = createSupabaseServiceClient();
+
+  const { data: wholesaleOrders } = await supabase
+    .from(ORDERS_TABLE)
+    .select("id, roastify_order_id")
+    .eq("source", "wholesale")
+    .not("roastify_order_id", "is", null);
+
+  for (const row of wholesaleOrders ?? []) {
+    if (!row.roastify_order_id) {
+      continue;
+    }
+
+    const before = await getOrderByRoastifyOrderId(row.roastify_order_id);
+    const canonical = await resolveCanonicalOrderForRoastifyWebhook(
+      row.roastify_order_id
+    );
+    if (before && canonical && before.id !== canonical.id) {
+      merged += 1;
+    }
+  }
+
+  const { data: nullStatusOrders } = await supabase
+    .from(ORDERS_TABLE)
+    .select("id, stripe_payment_intent_id")
+    .is("fulfillment_status", null);
+
+  for (const row of nullStatusOrders ?? []) {
+    if (row.stripe_payment_intent_id && isStripeSecretConfigured()) {
+      const paymentIntent = await getStripe().paymentIntents.retrieve(
+        row.stripe_payment_intent_id
+      );
+      const orderInput = buildWebsiteOrderInputFromMetadata(paymentIntent);
+      if (orderInput) {
+        await upsertWebsiteOrder(orderInput);
+        backfilled += 1;
+        continue;
+      }
+    }
+
+    await supabase
+      .from(ORDERS_TABLE)
+      .update({ fulfillment_status: "created" })
+      .eq("id", row.id);
+    backfilled += 1;
+  }
+
+  return { merged, backfilled };
 }

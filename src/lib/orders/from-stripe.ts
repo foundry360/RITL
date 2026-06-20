@@ -67,8 +67,13 @@ export async function buildWebsiteOrderInput(
     customerEmail: fulfillmentOrder.shipping.email,
     shippingAddress: formatShippingAddress(fulfillmentOrder.shipping),
     items: fulfillmentOrder.items,
-    roastifyOrderId: options?.roastifyOrderId,
-    fulfillmentStatus: options?.fulfillmentStatus,
+    roastifyOrderId:
+      options?.roastifyOrderId ??
+      paymentIntent.metadata?.ritl_roastify_order_id,
+    fulfillmentStatus:
+      options?.fulfillmentStatus ??
+      paymentIntent.metadata?.ritl_fulfillment_status ??
+      "created",
     confirmationEmailSent: options?.confirmationEmailSent,
   };
 }
@@ -122,7 +127,8 @@ export function buildWebsiteOrderInputFromMetadata(
     shippingAddress,
     items,
     roastifyOrderId: paymentIntent.metadata?.ritl_roastify_order_id,
-    fulfillmentStatus: paymentIntent.metadata?.ritl_fulfillment_status,
+    fulfillmentStatus:
+      paymentIntent.metadata?.ritl_fulfillment_status ?? "created",
     confirmationEmailSent:
       paymentIntent.metadata?.ritl_confirmation_email_sent === "true",
   };
