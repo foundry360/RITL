@@ -1,4 +1,5 @@
 import type Stripe from "stripe";
+import { syncGhlOrderFulfillmentProgressSafe } from "@/lib/gohighlevel/sync-order";
 import { sendOrderStageUpdateEmail } from "@/lib/email/send-order-stage-update";
 import {
   getRoastifyOrderStatus,
@@ -100,6 +101,15 @@ export async function syncRoastifyMetadataToStripe(
       },
     });
   }
+
+  await syncGhlOrderFulfillmentProgressSafe({
+    stripePaymentIntentId: paymentIntent.id,
+    roastifyOrderId: roastifyOrder.orderId,
+    fulfillmentStatus: roastifyStatus,
+    trackingNumber: tracking.trackingNumber,
+    trackingUrl: tracking.trackingUrl,
+    carrier: tracking.carrier,
+  });
 
   if (options?.notifyCustomer !== true) {
     return;

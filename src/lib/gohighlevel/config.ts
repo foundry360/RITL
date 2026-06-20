@@ -36,3 +36,27 @@ export function getGhlStripeCustomerFieldId(): string | undefined {
   const value = process.env.GHL_STRIPE_CUSTOMER_FIELD_ID?.trim();
   return value || undefined;
 }
+
+export function isGhlOrdersConfigured(): boolean {
+  return Boolean(
+    isGhlConfigured() &&
+      process.env.GHL_CUSTOMER_ORDERS_SCHEMA_KEY?.trim() &&
+      process.env.GHL_CONTACT_ORDERS_ASSOCIATION_ID?.trim()
+  );
+}
+
+export function getGhlCustomerOrdersSchemaKey(): string {
+  const value = process.env.GHL_CUSTOMER_ORDERS_SCHEMA_KEY?.trim();
+  if (!value) {
+    throw new Error("GHL_CUSTOMER_ORDERS_SCHEMA_KEY is not configured");
+  }
+  return value;
+}
+
+export function getGhlContactOrdersAssociationId(): string {
+  const value = process.env.GHL_CONTACT_ORDERS_ASSOCIATION_ID?.trim();
+  if (!value) {
+    throw new Error("GHL_CONTACT_ORDERS_ASSOCIATION_ID is not configured");
+  }
+  return value;
+}

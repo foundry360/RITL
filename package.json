@@ -21,7 +21,8 @@
     "orders:sync": "npx tsx scripts/sync-orders-fulfillment.ts",
     "salesforce:authorize": "node scripts/salesforce-authorize.mjs",
     "salesforce:verify": "node scripts/verify-salesforce.mjs",
-    "ghl:verify": "node scripts/verify-ghl.mjs"
+    "ghl:verify": "node scripts/verify-ghl.mjs",
+    "ghl:setup:orders": "node scripts/setup-ghl-customer-orders.mjs"
   },
   "dependencies": {
     "@google-analytics/data": "^6.1.0",

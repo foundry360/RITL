@@ -96,14 +96,31 @@ export async function POST(request: NextRequest) {
           const { syncGhlContactFromPaymentIntent } = await import(
             "@/lib/gohighlevel/sync-contact"
           );
-          const result = await syncGhlContactFromPaymentIntent(paymentIntent);
-          if (result) {
+          const { syncGhlOrderFromPaymentIntent } = await import(
+            "@/lib/gohighlevel/sync-order"
+          );
+          const contactResult = await syncGhlContactFromPaymentIntent(paymentIntent);
+          if (contactResult) {
             console.info(
-              `GoHighLevel ${result.created ? "created" : "updated"} contact ${result.contactId}`
+              `GoHighLevel ${contactResult.created ? "created" : "updated"} contact ${contactResult.contactId}`
             );
+
+            const stripe = getStripe();
+            const orderPaymentIntent = await stripe.paymentIntents.retrieve(
+              paymentIntent.id
+            );
+            const orderResult = await syncGhlOrderFromPaymentIntent(
+              orderPaymentIntent,
+              contactResult.contactId
+            );
+            if (orderResult) {
+              console.info(
+                `GoHighLevel ${orderResult.created ? "created" : "updated"} order ${orderResult.orderRecordId}`
+              );
+            }
           }
         } catch (error) {
-          console.error("GoHighLevel contact sync failed:", error);
+          console.error("GoHighLevel sync failed:", error);
         }
       }
 

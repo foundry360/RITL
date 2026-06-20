@@ -1,4 +1,5 @@
 import { sendOrderStageUpdateEmail } from "@/lib/email/send-order-stage-update";
+import { syncGhlOrderFulfillmentFromOrderRecord } from "@/lib/gohighlevel/sync-order";
 import type { AdminOrderType } from "@/lib/admin/format";
 import type { FulfillmentLineItem } from "@/lib/fulfillment/types";
 import { getRoastifyOrder } from "@/lib/roastify/client";
@@ -361,6 +362,8 @@ export async function applyRoastifyWebhookUpdate(
   }
 
   const updatedOrder = mapRow(data);
+  await syncGhlOrderFulfillmentFromOrderRecord(updatedOrder);
+
   const eventStage = resolveStageFromWebhookEvent(input.eventType);
   const statusStage =
     statusAdvanced && storedStatus
@@ -462,6 +465,7 @@ export async function syncOrderFulfillmentFromRoastify(
     }
 
     currentOrder = mapRow(data);
+    await syncGhlOrderFulfillmentFromOrderRecord(currentOrder);
   }
 
   if (!statusAdvanced || !storedStatus) {
