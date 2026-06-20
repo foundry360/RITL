@@ -1,10 +1,16 @@
+import { formatPrice } from "@/lib/checkout/format";
 import { EMAIL_BRAND_NAME, EMAIL_COLORS } from "@/lib/email/brand-tokens";
 import { escapeHtml } from "@/lib/email/escape-html";
 import { buildEmailShell, emailSectionLabel } from "@/lib/email/layout";
 import type { FulfillmentOrder } from "@/lib/fulfillment/types";
 import {
+  getPriceLabel,
+  getUnitPrice,
+  type ProductPricingMap,
+} from "@/lib/stripe/pricing";
+import {
   getProduct,
-  getProductPriceLabel,
+  type ProductId,
   type PurchaseType,
 } from "@/lib/stripe/products";
 
@@ -24,25 +30,59 @@ function formatShippingAddress(shipping: FulfillmentOrder["shipping"]): string {
   return lines.join("\n");
 }
 
-function buildLineItemsHtml(order: FulfillmentOrder): string {
+function formatLineItemPriceLabel(
+  pricing: ProductPricingMap,
+  productId: ProductId,
+  purchaseType: PurchaseType,
+  quantity: number,
+  subscriptionIntervalWeeks?: number
+): string {
+  const label = getPriceLabel(pricing, productId, purchaseType);
+
+  if (purchaseType === "subscription" && subscriptionIntervalWeeks) {
+    return `${label} every ${subscriptionIntervalWeeks} weeks`;
+  }
+
+  if (quantity > 1) {
+    return `${label} each`;
+  }
+
+  return label;
+}
+
+function computeSubtotalCents(
+  order: FulfillmentOrder,
+  pricing: ProductPricingMap
+): number {
+  return order.items.reduce((sum, item) => {
+    const unitCents = Math.round(
+      getUnitPrice(pricing, item.productId, item.purchaseType) * 100
+    );
+    return sum + unitCents * item.quantity;
+  }, 0);
+}
+
+function buildLineItemsHtml(
+  order: FulfillmentOrder,
+  pricing: ProductPricingMap
+): string {
   const rows = order.items.map((item) => {
     const product = getProduct(item.productId);
     const name = product?.name ?? item.productId;
-    const unitLabel = product
-      ? getProductPriceLabel(product, item.purchaseType)
-      : "";
-    const cadence =
-      item.purchaseType === "subscription" && product
-        ? ` · every ${product.subscriptionIntervalWeeks} weeks`
-        : "";
+    const priceLabel = formatLineItemPriceLabel(
+      pricing,
+      item.productId,
+      item.purchaseType,
+      item.quantity,
+      product?.subscriptionIntervalWeeks
+    );
 
     return `
       <tr>
         <td style="padding: 12px 0; color: ${EMAIL_COLORS.textPrimary};">
           ${escapeHtml(name)} × ${item.quantity}
           <div style="margin-top: 4px; font-size: 13px; color: ${EMAIL_COLORS.textMuted};">
-            ${escapeHtml(formatPurchaseTypeLabel(item.purchaseType))}${escapeHtml(cadence)}
-            ${unitLabel ? ` · ${escapeHtml(unitLabel)} each` : ""}
+            ${escapeHtml(formatPurchaseTypeLabel(item.purchaseType))} · ${escapeHtml(priceLabel)}
           </div>
         </td>
       </tr>`;
@@ -51,17 +91,51 @@ function buildLineItemsHtml(order: FulfillmentOrder): string {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rows.join("")}</table>`;
 }
 
+function buildTotalsHtml(
+  subtotalLabel: string | null,
+  taxLabel: string | null,
+  totalLabel: string
+): string {
+  if (!subtotalLabel) {
+    return `<p style="margin: 16px 0 0; font-size: 16px; color: ${EMAIL_COLORS.textPrimary};">Total: <strong>${escapeHtml(totalLabel)}</strong></p>`;
+  }
+
+  const taxRow = taxLabel
+    ? `<p style="margin: 8px 0 0; font-size: 15px; color: ${EMAIL_COLORS.textBody};">Tax: ${escapeHtml(taxLabel)}</p>`
+    : "";
+
+  return `
+    <p style="margin: 16px 0 0; font-size: 15px; color: ${EMAIL_COLORS.textBody};">Subtotal: ${escapeHtml(subtotalLabel)}</p>
+    ${taxRow}
+    <p style="margin: 8px 0 0; font-size: 16px; color: ${EMAIL_COLORS.textPrimary};">Total: <strong>${escapeHtml(totalLabel)}</strong></p>`;
+}
+
 export function buildOrderConfirmationEmail(input: {
   customerName: string;
   order: FulfillmentOrder;
-  totalLabel: string;
+  pricing: ProductPricingMap;
+  totalCents: number;
   orderReference: string;
 }): { subject: string; text: string; html: string } {
   const shippingText = formatShippingAddress(input.order.shipping);
+  const totalLabel = formatPrice(input.totalCents / 100);
+  const subtotalCents = computeSubtotalCents(input.order, input.pricing);
+  const taxCents = input.totalCents - subtotalCents;
+  const subtotalLabel =
+    subtotalCents > 0 && taxCents > 0 ? formatPrice(subtotalCents / 100) : null;
+  const taxLabel = taxCents > 0 ? formatPrice(taxCents / 100) : null;
+
   const itemLines = input.order.items.map((item) => {
     const product = getProduct(item.productId);
     const name = product?.name ?? item.productId;
-    return `- ${name} × ${item.quantity} (${formatPurchaseTypeLabel(item.purchaseType)})`;
+    const priceLabel = formatLineItemPriceLabel(
+      input.pricing,
+      item.productId,
+      item.purchaseType,
+      item.quantity,
+      product?.subscriptionIntervalWeeks
+    );
+    return `- ${name} × ${item.quantity} (${formatPurchaseTypeLabel(item.purchaseType)}) — ${priceLabel}`;
   });
 
   const subject = `Your ${EMAIL_BRAND_NAME} order is confirmed`;
@@ -72,7 +146,9 @@ export function buildOrderConfirmationEmail(input: {
     "",
     "Order summary",
     ...itemLines,
-    `Total: ${input.totalLabel}`,
+    ...(subtotalLabel ? [`Subtotal: ${subtotalLabel}`] : []),
+    ...(taxLabel ? [`Tax: ${taxLabel}`] : []),
+    `Total: ${totalLabel}`,
     "",
     "Shipping to",
     shippingText,
@@ -87,8 +163,8 @@ export function buildOrderConfirmationEmail(input: {
 
   const bodyHtml = `
     ${emailSectionLabel("Order summary", { first: true })}
-    ${buildLineItemsHtml(input.order)}
-    <p style="margin: 16px 0 0; font-size: 16px; color: ${EMAIL_COLORS.textPrimary};">Total: <strong>${escapeHtml(input.totalLabel)}</strong></p>
+    ${buildLineItemsHtml(input.order, input.pricing)}
+    ${buildTotalsHtml(subtotalLabel, taxLabel, totalLabel)}
     ${emailSectionLabel("Shipping to")}
     <p style="margin: 0; white-space: pre-line; font-size: 15px; line-height: 1.6; color: ${EMAIL_COLORS.textBody};">${escapeHtml(shippingText)}</p>
   `;

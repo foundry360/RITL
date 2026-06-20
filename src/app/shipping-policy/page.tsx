@@ -19,7 +19,7 @@ export default function ShippingPolicyPage() {
       <h2 className="text-base text-text-primary pt-4">Domestic Shipping</h2>
       <p>
         Standard shipping (3–5 business days) is complimentary on orders over
-        $50. Express shipping (1–2 business days) is available at checkout.
+        $50.
       </p>
       <h2 className="text-base text-text-primary pt-4">International Shipping</h2>
       <p>

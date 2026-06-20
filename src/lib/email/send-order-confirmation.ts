@@ -1,6 +1,5 @@
 import type Stripe from "stripe";
 import { Resend } from "resend";
-import { formatPrice } from "@/lib/checkout/format";
 import {
   getContactFromAddress,
   isContactEmailConfigured,
@@ -8,6 +7,7 @@ import {
 import { buildOrderConfirmationEmail } from "@/lib/email/build-order-confirmation";
 import { resolveFulfillmentOrder } from "@/lib/roastify/resolve-fulfillment-order";
 import { markOrderConfirmationEmailSent } from "@/lib/orders/repository";
+import { getStripePricing } from "@/lib/stripe/fetch-prices";
 import { getStripe } from "@/lib/stripe/server";
 
 export async function sendOrderConfirmationEmail(
@@ -44,11 +44,12 @@ export async function sendOrderConfirmationEmail(
   }
 
   const customerName = order.shipping.name.trim() || "there";
-  const totalLabel = formatPrice(fullPaymentIntent.amount / 100);
+  const pricing = await getStripePricing();
   const { subject, text, html } = buildOrderConfirmationEmail({
     customerName,
     order,
-    totalLabel,
+    pricing,
+    totalCents: fullPaymentIntent.amount,
     orderReference: fullPaymentIntent.id,
   });
 

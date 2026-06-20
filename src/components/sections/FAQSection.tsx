@@ -17,7 +17,7 @@ const faqItems = [
   {
     question: "How does shipping work?",
     answer:
-      "We ship within 1–2 business days. Standard domestic delivery takes 3–5 business days. Express options are available at checkout. All orders are packaged in minimal, recyclable materials aligned with our design philosophy.",
+      "We ship within 1–2 business days. Standard domestic delivery typically takes 3–5 business days after shipment. All orders are packaged in minimal, recyclable materials aligned with our design philosophy.",
   },
   {
     question: "Do you offer subscriptions?",

@@ -1,6 +1,7 @@
 import { buildAbandonedCheckoutEmail, getAbandonedCheckoutUrl } from "@/lib/email/build-abandoned-checkout";
 import { buildOrderConfirmationEmail } from "@/lib/email/build-order-confirmation";
 import { buildTransactionalEmail } from "@/lib/email/order-notifications";
+import { buildFallbackPricing } from "@/lib/stripe/pricing";
 import {
   formatStageLabel,
   getStageEmailCopy,
@@ -48,7 +49,8 @@ export function renderEmailPreview(templateId: EmailPreviewTemplateId): {
     const email = buildOrderConfirmationEmail({
       customerName: "Alex",
       order: SAMPLE_ORDER,
-      totalLabel: "$89.00",
+      pricing: buildFallbackPricing(),
+      totalCents: 8900,
       orderReference: "pi_preview_123",
     });
     return { subject: email.subject, html: email.html };
