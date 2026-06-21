@@ -351,25 +351,38 @@ export async function listAdminWholesaleOrders(
     };
   }
 
-  const roastifyOrders = await listAllWholesaleRoastifyOrders();
-  const allOrders = roastifyOrders.map(toWholesaleOrderRow);
-  const filteredOrders = filterWholesaleOrders(allOrders, options.query);
-  const sortedOrders = sortWholesaleOrders(filteredOrders, sortBy, sortDir);
-  const total = sortedOrders.length;
-  const totalPages = total === 0 ? 0 : Math.ceil(total / pageSize);
-  const currentPage = totalPages === 0 ? 1 : Math.min(page, totalPages);
-  const startIndex = (currentPage - 1) * pageSize;
-  const orders = sortedOrders.slice(startIndex, startIndex + pageSize);
+  try {
+    const roastifyOrders = await listAllWholesaleRoastifyOrders();
+    const allOrders = roastifyOrders.map(toWholesaleOrderRow);
+    const filteredOrders = filterWholesaleOrders(allOrders, options.query);
+    const sortedOrders = sortWholesaleOrders(filteredOrders, sortBy, sortDir);
+    const total = sortedOrders.length;
+    const totalPages = total === 0 ? 0 : Math.ceil(total / pageSize);
+    const currentPage = totalPages === 0 ? 1 : Math.min(page, totalPages);
+    const startIndex = (currentPage - 1) * pageSize;
+    const orders = sortedOrders.slice(startIndex, startIndex + pageSize);
 
-  return {
-    orders,
-    total,
-    page: currentPage,
-    pageSize,
-    totalPages,
-    sortBy,
-    sortDir,
-  };
+    return {
+      orders,
+      total,
+      page: currentPage,
+      pageSize,
+      totalPages,
+      sortBy,
+      sortDir,
+    };
+  } catch (error) {
+    console.error("Roastify wholesale orders list failed:", error);
+    return {
+      orders: [],
+      total: 0,
+      page: 1,
+      pageSize,
+      totalPages: 0,
+      sortBy,
+      sortDir,
+    };
+  }
 }
 
 export async function getAdminWholesaleOrder(

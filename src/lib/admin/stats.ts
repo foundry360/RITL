@@ -231,34 +231,84 @@ async function getAbandonedCheckoutStats(): Promise<
     return { open: 0, converted: 0, openValueCents: 0 };
   }
 
-  const supabase = createSupabaseServiceClient();
-  const { data, error } = await supabase
-    .from("abandoned_checkouts")
-    .select("amount_cents, converted_at");
+  try {
+    const supabase = createSupabaseServiceClient();
+    const { data, error } = await supabase
+      .from("abandoned_checkouts")
+      .select("amount_cents, converted_at");
 
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  let open = 0;
-  let converted = 0;
-  let openValueCents = 0;
-
-  for (const row of data ?? []) {
-    const amount =
-      typeof row.amount_cents === "number"
-        ? row.amount_cents
-        : Number(row.amount_cents ?? 0);
-
-    if (row.converted_at) {
-      converted += 1;
-    } else {
-      open += 1;
-      openValueCents += amount;
+    if (error) {
+      throw new Error(error.message);
     }
-  }
 
-  return { open, converted, openValueCents };
+    let open = 0;
+    let converted = 0;
+    let openValueCents = 0;
+
+    for (const row of data ?? []) {
+      const amount =
+        typeof row.amount_cents === "number"
+          ? row.amount_cents
+          : Number(row.amount_cents ?? 0);
+
+      if (row.converted_at) {
+        converted += 1;
+      } else {
+        open += 1;
+        openValueCents += amount;
+      }
+    }
+
+    return { open, converted, openValueCents };
+  } catch (error) {
+    console.error("Abandoned checkout stats unavailable:", error);
+    return { open: 0, converted: 0, openValueCents: 0 };
+  }
+}
+
+async function getWholesaleDashboardSummary(days: DashboardTimeRange): Promise<
+  AdminDashboardStats["wholesale"]
+> {
+  try {
+    const wholesaleResult = await listAdminWholesaleOrders({
+      page: 1,
+      pageSize: 100,
+    });
+    const periodWholesaleOrders = filterWholesaleOrdersByPeriod(
+      wholesaleResult.orders,
+      days
+    );
+
+    return {
+      period: periodWholesaleOrders.length,
+      inPipeline: countPipelineOrders(periodWholesaleOrders),
+    };
+  } catch (error) {
+    console.error("Wholesale dashboard stats unavailable:", error);
+    return { period: 0, inPipeline: 0 };
+  }
+}
+
+function createEmptyDashboardStats(
+  days: DashboardTimeRange,
+  dataSource: AdminDashboardStats["dataSource"] = "stripe"
+): AdminDashboardStats {
+  return {
+    generatedAt: new Date().toISOString(),
+    days,
+    revenue: { periodCents: 0, allTimeCents: 0 },
+    orders: {
+      period: 0,
+      allTime: 0,
+      fulfillmentByStage: createEmptyFulfillmentByStage(),
+      byType: { oneTime: 0, subscription: 0, mixed: 0, unknown: 0 },
+    },
+    customers: 0,
+    wholesale: { period: 0, inPipeline: 0 },
+    abandonedCheckouts: { open: 0, converted: 0, openValueCents: 0 },
+    recentOrders: [],
+    dataSource,
+  };
 }
 
 async function getSupabaseDashboardStats(
@@ -279,22 +329,17 @@ async function getSupabaseDashboardStats(
 
   const rows = (data ?? []) as OrderSummaryRow[];
 
-  const [coreStats, abandonedCheckouts, wholesaleResult] = await Promise.all([
+  const [coreStats, abandonedCheckouts, wholesale] = await Promise.all([
     Promise.resolve(buildStatsFromOrderRows(rows, days)),
     getAbandonedCheckoutStats(),
-    listAdminWholesaleOrders({ page: 1, pageSize: 100 }),
+    getWholesaleDashboardSummary(days),
   ]);
-
-  const periodWholesaleOrders = filterWholesaleOrdersByPeriod(wholesaleResult.orders, days);
 
   return {
     generatedAt: new Date().toISOString(),
     days,
     ...coreStats,
-    wholesale: {
-      period: periodWholesaleOrders.length,
-      inPipeline: countPipelineOrders(periodWholesaleOrders),
-    },
+    wholesale,
     abandonedCheckouts,
     dataSource: "supabase",
   };
@@ -303,9 +348,29 @@ async function getSupabaseDashboardStats(
 async function getStripeDashboardStats(
   days: DashboardTimeRange
 ): Promise<AdminDashboardStats> {
-  const [ordersResult, wholesaleResult, abandonedCheckouts] = await Promise.all([
-    listAdminOrders({ page: 1, pageSize: 100, sortBy: "createdAt", sortDir: "desc" }),
-    listAdminWholesaleOrders({ page: 1, pageSize: 100 }),
+  let ordersResult: Awaited<ReturnType<typeof listAdminOrders>> = {
+    orders: [],
+    total: 0,
+    page: 1,
+    pageSize: 100,
+    totalPages: 0,
+    sortBy: "createdAt",
+    sortDir: "desc",
+  };
+
+  try {
+    ordersResult = await listAdminOrders({
+      page: 1,
+      pageSize: 100,
+      sortBy: "createdAt",
+      sortDir: "desc",
+    });
+  } catch (error) {
+    console.error("Order stats unavailable for dashboard:", error);
+  }
+
+  const [wholesale, abandonedCheckouts] = await Promise.all([
+    getWholesaleDashboardSummary(days),
     getAbandonedCheckoutStats(),
   ]);
 
@@ -321,7 +386,6 @@ async function getStripeDashboardStats(
   }));
 
   const coreStats = buildStatsFromOrderRows(rows, days);
-  const periodWholesaleOrders = filterWholesaleOrdersByPeriod(wholesaleResult.orders, days);
 
   return {
     generatedAt: new Date().toISOString(),
@@ -331,10 +395,7 @@ async function getStripeDashboardStats(
       ...coreStats.orders,
       allTime: ordersResult.total,
     },
-    wholesale: {
-      period: periodWholesaleOrders.length,
-      inPipeline: countPipelineOrders(periodWholesaleOrders),
-    },
+    wholesale,
     abandonedCheckouts,
     dataSource: "stripe",
   };
@@ -353,5 +414,10 @@ export async function getAdminDashboardStats(
     }
   }
 
-  return getStripeDashboardStats(normalizedDays);
+  try {
+    return await getStripeDashboardStats(normalizedDays);
+  } catch (error) {
+    console.error("Stripe dashboard stats failed:", error);
+    return createEmptyDashboardStats(normalizedDays);
+  }
 }
