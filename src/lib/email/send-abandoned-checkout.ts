@@ -2,7 +2,7 @@ import { Resend } from "resend";
 import type { AbandonedCheckoutRecord } from "@/lib/abandoned-checkout/types";
 import {
   buildAbandonedCheckoutEmail,
-  getAbandonedCheckoutUrl,
+  getAbandonedCheckoutRecoveryUrl,
 } from "@/lib/email/build-abandoned-checkout";
 import { formatPrice } from "@/lib/checkout/format";
 import {
@@ -28,7 +28,7 @@ export async function sendAbandonedCheckoutEmail(
   const { subject, text, html } = buildAbandonedCheckoutEmail({
     items: record.items,
     totalLabel,
-    checkoutUrl: getAbandonedCheckoutUrl(),
+    checkoutUrl: getAbandonedCheckoutRecoveryUrl(record),
   });
 
   const resend = new Resend(process.env.RESEND_API_KEY);

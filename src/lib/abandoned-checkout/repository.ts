@@ -52,6 +52,27 @@ function mapRow(row: Record<string, unknown>): AbandonedCheckoutRecord {
   };
 }
 
+export async function getAbandonedCheckoutById(
+  id: string
+): Promise<AbandonedCheckoutRecord | null> {
+  if (!isOrdersDatabaseConfigured()) {
+    return null;
+  }
+
+  const supabase = createSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data ? mapRow(data) : null;
+}
+
 export async function recordAbandonedCheckout(
   input: RecordAbandonedCheckoutInput
 ): Promise<void> {

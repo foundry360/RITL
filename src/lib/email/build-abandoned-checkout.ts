@@ -2,6 +2,8 @@ import { EMAIL_BRAND_NAME, EMAIL_COLORS, getEmailAppUrl } from "@/lib/email/bran
 import { escapeHtml } from "@/lib/email/escape-html";
 import { buildEmailShell, emailSectionLabel } from "@/lib/email/layout";
 import type { AbandonedCheckoutItem } from "@/lib/abandoned-checkout/types";
+import type { AbandonedCheckoutRecord } from "@/lib/abandoned-checkout/types";
+import { signAbandonedCheckoutRecovery } from "@/lib/abandoned-checkout/recovery-token";
 import { getProduct, type PurchaseType } from "@/lib/stripe/products";
 
 function formatPurchaseTypeLabel(purchaseType: PurchaseType): string {
@@ -90,6 +92,23 @@ export function buildAbandonedCheckoutEmail(input: {
   return { subject, text, html };
 }
 
+export function getAbandonedCheckoutRecoveryUrl(
+  record: Pick<AbandonedCheckoutRecord, "id">
+): string {
+  const token = signAbandonedCheckoutRecovery(record.id);
+  if (!token) {
+    return `${getEmailAppUrl()}/cart`;
+  }
+
+  const params = new URLSearchParams({
+    recover: record.id,
+    token,
+  });
+
+  return `${getEmailAppUrl()}/cart?${params.toString()}`;
+}
+
+/** @deprecated Use getAbandonedCheckoutRecoveryUrl for production emails. */
 export function getAbandonedCheckoutUrl(): string {
-  return `${getEmailAppUrl()}/checkout`;
+  return `${getEmailAppUrl()}/cart`;
 }
