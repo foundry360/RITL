@@ -21,6 +21,7 @@ export interface OrderRecord {
   tracking_url: string | null;
   carrier: string | null;
   roastify_updated_at: string | null;
+  roastify_submit_claimed_at: string | null;
   confirmation_email_sent_at: string | null;
   stage_emails_sent: string[];
   webhook_ids_processed: string[];

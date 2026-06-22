@@ -130,6 +130,10 @@ function mapRow(row: Record<string, unknown>): OrderRecord {
     carrier: typeof row.carrier === "string" ? row.carrier : null,
     roastify_updated_at:
       typeof row.roastify_updated_at === "string" ? row.roastify_updated_at : null,
+    roastify_submit_claimed_at:
+      typeof row.roastify_submit_claimed_at === "string"
+        ? row.roastify_submit_claimed_at
+        : null,
     confirmation_email_sent_at:
       typeof row.confirmation_email_sent_at === "string"
         ? row.confirmation_email_sent_at
@@ -288,6 +292,52 @@ export async function linkRoastifyOrderToWebsiteOrder(input: {
   }
 
   return mapRow(data);
+}
+
+const ROASTIFY_SUBMIT_CLAIM_STALE_MS = 5 * 60 * 1000;
+
+export async function tryClaimRoastifySubmission(
+  stripePaymentIntentId: string
+): Promise<boolean> {
+  if (!isOrdersDatabaseConfigured()) {
+    return true;
+  }
+
+  const existing = await getOrderByStripePaymentIntentId(stripePaymentIntentId);
+  if (existing?.roastify_order_id) {
+    return false;
+  }
+
+  const supabase = createSupabaseServiceClient();
+  const claimedAt = new Date().toISOString();
+
+  const { data: freshClaim } = await supabase
+    .from(ORDERS_TABLE)
+    .update({ roastify_submit_claimed_at: claimedAt })
+    .eq("stripe_payment_intent_id", stripePaymentIntentId)
+    .is("roastify_order_id", null)
+    .is("roastify_submit_claimed_at", null)
+    .select("id")
+    .maybeSingle();
+
+  if (freshClaim) {
+    return true;
+  }
+
+  const staleCutoff = new Date(
+    Date.now() - ROASTIFY_SUBMIT_CLAIM_STALE_MS
+  ).toISOString();
+
+  const { data: staleClaim } = await supabase
+    .from(ORDERS_TABLE)
+    .update({ roastify_submit_claimed_at: claimedAt })
+    .eq("stripe_payment_intent_id", stripePaymentIntentId)
+    .is("roastify_order_id", null)
+    .lt("roastify_submit_claimed_at", staleCutoff)
+    .select("id")
+    .maybeSingle();
+
+  return Boolean(staleClaim);
 }
 
 export async function getOrderByStripePaymentIntentId(

@@ -2,30 +2,12 @@ import { ClearCheckoutSession } from "@/components/checkout/ClearCheckoutSession
 import { CheckoutPageShell } from "@/components/checkout/CheckoutPageShell";
 import { ButtonLink } from "@/components/ui/Button";
 import { BRAND_COFFEE } from "@/lib/brand";
-import { processSuccessfulPaymentIntent } from "@/lib/fulfillment/process-payment-intent";
 
 export const metadata = {
   title: `Order Confirmed | ${BRAND_COFFEE}`,
 };
 
-interface CheckoutSuccessPageProps {
-  searchParams: Promise<{ payment_intent?: string }>;
-}
-
-export default async function CheckoutSuccessPage({
-  searchParams,
-}: CheckoutSuccessPageProps) {
-  const params = await searchParams;
-  const paymentIntentId = params.payment_intent?.trim();
-
-  if (paymentIntentId?.startsWith("pi_")) {
-    try {
-      await processSuccessfulPaymentIntent(paymentIntentId);
-    } catch (error) {
-      console.error("Checkout success fulfillment failed:", error);
-    }
-  }
-
+export default function CheckoutSuccessPage() {
   return (
     <CheckoutPageShell
       step="confirmation"
