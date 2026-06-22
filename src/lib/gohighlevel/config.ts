@@ -42,6 +42,10 @@ export function getGhlWebsiteLeadResubmitTag(): string {
   );
 }
 
+export function getGhlMailingListTag(): string {
+  return process.env.GHL_MAILING_LIST_TAG?.trim() || "mailing-list";
+}
+
 export function getGhlStripeCustomerFieldId(): string | undefined {
   const value = process.env.GHL_STRIPE_CUSTOMER_FIELD_ID?.trim();
   return value || undefined;

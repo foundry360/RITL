@@ -1,5 +1,5 @@
-import { ButtonLink } from "@/components/ui/Button";
 import { FadeIn } from "@/components/ui/FadeIn";
+import { MailingListSignup } from "@/components/sections/MailingListSignup";
 
 export function CTASection() {
   return (
@@ -12,17 +12,10 @@ export function CTASection() {
             daily ritual.
           </h2>
           <p className="mx-auto mt-6 max-w-md text-base leading-relaxed text-text-secondary">
-            Join those who refuse to compromise on focus, clarity, and
-            performance. Your cognitive edge starts here.
+            Join the mailing list for product drops, ritual insights, and
+            performance-focused updates from RITÜL.
           </p>
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <ButtonLink href="/#products" size="lg">
-              Get Started
-            </ButtonLink>
-            <ButtonLink href="/#products" variant="outline" size="lg">
-              Shop RITÜL
-            </ButtonLink>
-          </div>
+          <MailingListSignup />
         </FadeIn>
       </div>
     </section>

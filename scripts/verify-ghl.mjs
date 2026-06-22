@@ -61,6 +61,10 @@ async function main() {
     process.env.GHL_WEBSITE_LEAD_RESUBMIT_TAG?.trim() || "website-lead-returning";
   console.log(`  Website lead tag (resubmit): ${websiteLeadResubmitTag}`);
 
+  const mailingListTag =
+    process.env.GHL_MAILING_LIST_TAG?.trim() || "mailing-list";
+  console.log(`  Mailing list tag: ${mailingListTag}`);
+
   if (process.env.GHL_STRIPE_CUSTOMER_FIELD_ID?.trim()) {
     console.log(
       `  Stripe field: ${process.env.GHL_STRIPE_CUSTOMER_FIELD_ID.trim()}`
@@ -70,7 +74,7 @@ async function main() {
   }
 
   console.log(
-    "\nGoHighLevel is ready. Purchases sync customer tags; new modal signups use the new-lead tag; resubmits use the resubmit tag."
+    "\nGoHighLevel is ready. Purchases sync customer tags; modal signups use lead tags; mailing list signups use the mailing list tag."
   );
 }
 
