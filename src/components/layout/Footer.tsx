@@ -7,10 +7,12 @@ const socialLinks = [
   {
     href: "https://www.facebook.com/profile.php?id=61590938175270",
     label: "Facebook",
+    icon: "facebook" as const,
   },
   {
     href: "https://www.instagram.com/drinkritul/?hl=en",
     label: "Instagram",
+    icon: "instagram" as const,
   },
 ];
 
@@ -71,6 +73,52 @@ function LockIcon() {
   );
 }
 
+function FacebookIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <path d="M13.5 8.5H16l-.7 3H13.5v9h-3.5v-9H8V8.5h2V7.1c0-1.4.4-2.5 1.2-3.3.8-.8 2-1.2 3.6-1.2H16v3h-1.8c-.5 0-.8.1-1 .4-.2.2-.3.6-.3 1.1v1.5z" />
+    </svg>
+  );
+}
+
+function InstagramIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <rect
+        x="4.5"
+        y="4.5"
+        width="15"
+        height="15"
+        rx="4"
+        stroke="currentColor"
+        strokeWidth="1.75"
+      />
+      <circle cx="12" cy="12" r="3.5" stroke="currentColor" strokeWidth="1.75" />
+      <circle cx="17" cy="7" r="1" fill="currentColor" />
+    </svg>
+  );
+}
+
+function SocialIcon({ icon }: { icon: "facebook" | "instagram" }) {
+  if (icon === "facebook") {
+    return <FacebookIcon />;
+  }
+
+  return <InstagramIcon />;
+}
+
 export function Footer() {
   return (
     <footer className="border-t border-graphite bg-black">
@@ -82,19 +130,6 @@ export function Footer() {
               Functional Coffee is cognitive wellness for the modern ritual.
               Precision-formulated for focus, clarity, and daily performance.
             </p>
-            <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2">
-              {socialLinks.map((link) => (
-                <a
-                  key={link.href}
-                  href={link.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-text-muted transition-colors hover:text-text-primary"
-                >
-                  {link.label}
-                </a>
-              ))}
-            </div>
           </div>
 
           <div className="shrink-0">
@@ -166,6 +201,20 @@ export function Footer() {
             <p className="mt-4 text-sm text-text-muted leading-relaxed">
               Mon–Fri, 9am–6pm EST
             </p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              {socialLinks.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={link.label}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-[8px] bg-black text-white ring-1 ring-graphite transition-colors hover:bg-near-black hover:ring-steel-silver/40"
+                >
+                  <SocialIcon icon={link.icon} />
+                </a>
+              ))}
+            </div>
           </div>
         </div>
 
