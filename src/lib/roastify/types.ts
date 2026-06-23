@@ -27,6 +27,10 @@ export interface RoastifyCreateOrderResponse {
   createdAt?: string;
 }
 
+export interface RoastifyCancelOrderResponse {
+  message: string;
+}
+
 export interface RoastifyAddress {
   name?: string | null;
   company?: string | null;

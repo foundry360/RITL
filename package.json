@@ -14,6 +14,7 @@
     "stripe:webhook:verify": "node scripts/verify-stripe-webhook.mjs",
     "vercel:env:push": "node scripts/push-vercel-env.mjs",
     "roastify:verify": "node scripts/verify-roastify.mjs",
+    "roastify:cancel": "node scripts/cancel-roastify-order.mjs",
     "roastify:webhook:setup": "node scripts/setup-roastify-webhook.mjs",
     "roastify:webhook:verify": "node scripts/verify-roastify-webhook.mjs",
     "orders:backfill": "node scripts/backfill-orders.mjs",

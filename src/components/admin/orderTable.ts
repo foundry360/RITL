@@ -6,14 +6,15 @@ export const orderTableCellClass =
   "px-5 py-4 align-top text-sm text-text-secondary";
 
 export const ordersPanelColumnWidths = {
-  customer: "w-[17%]",
-  items: "w-[19%]",
-  date: "w-[14%]",
+  customer: "w-[16%]",
+  items: "w-[18%]",
+  date: "w-[13%]",
   total: "w-[7%]",
-  type: "w-[10%]",
+  type: "w-[9%]",
   progress: "w-[10%]",
-  tracking: "w-[14%]",
-  orderId: "w-[9%]",
+  tracking: "w-[13%]",
+  orderId: "w-[8%]",
+  actions: "w-[6%]",
 } as const;
 
 export const wholesalePanelColumnWidths = {

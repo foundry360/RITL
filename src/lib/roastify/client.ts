@@ -3,6 +3,7 @@ import {
   getRoastifyApiKey,
 } from "@/lib/roastify/config";
 import type {
+  RoastifyCancelOrderResponse,
   RoastifyCreateOrderRequest,
   RoastifyCreateOrderResponse,
   RoastifyOrderDetail,
@@ -103,6 +104,32 @@ export async function getRoastifyOrder(
   }
 
   return data as RoastifyOrderDetail;
+}
+
+export async function cancelRoastifyOrder(
+  orderId: string
+): Promise<RoastifyCancelOrderResponse> {
+  const response = await fetch(
+    `${getRoastifyApiBaseUrl()}/orders/${encodeURIComponent(orderId)}/cancel`,
+    {
+      method: "PUT",
+      headers: getRoastifyHeaders(),
+    }
+  );
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(
+      parseRoastifyError(data, response.status, "Roastify order cancel failed")
+    );
+  }
+
+  if (typeof data?.message !== "string") {
+    throw new Error("Roastify cancel response did not include a message");
+  }
+
+  return data as RoastifyCancelOrderResponse;
 }
 
 export async function listRoastifyOrders(options?: {

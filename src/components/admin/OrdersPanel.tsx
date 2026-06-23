@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ADMIN_ORDER_PAGE_SIZES,
+  type AdminOrderRow,
   type AdminOrderPageSize,
   type AdminOrdersListResult,
   type AdminOrderSortDirection,
@@ -22,6 +23,7 @@ import { formatPrice } from "@/lib/checkout/format";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { FulfillmentProgressSteps } from "@/components/admin/FulfillmentProgressSteps";
+import { OrderRowActions } from "@/components/admin/OrderRowActions";
 import {
   orderTableCellClass,
   orderTableClass,
@@ -55,7 +57,7 @@ const orderColumnWidthByField: Record<AdminOrderSortField, string> = {
   roastifyOrderId: ordersPanelColumnWidths.orderId,
 };
 
-const ORDER_TABLE_COLUMN_COUNT = 8;
+const ORDER_TABLE_COLUMN_COUNT = 9;
 
 function formatOrderDate(isoDate: string): string {
   return new Intl.DateTimeFormat("en-US", {
@@ -326,6 +328,15 @@ export function OrdersPanel({ initialResult }: OrdersPanelProps) {
     loadOrders(query, page + 1);
   }
 
+  function handleOrderUpdated(updatedOrder: AdminOrderRow) {
+    setResult((current) => ({
+      ...current,
+      orders: current.orders.map((order) =>
+        order.id === updatedOrder.id ? updatedOrder : order
+      ),
+    }));
+  }
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -504,6 +515,15 @@ export function OrdersPanel({ initialResult }: OrdersPanelProps) {
                       </th>
                     );
                   })}
+                  <th
+                    className={cn(
+                      orderTableHeaderClass,
+                      ordersPanelColumnWidths.actions,
+                      "text-right"
+                    )}
+                  >
+                    <span className="sr-only">Actions</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -607,6 +627,12 @@ export function OrdersPanel({ initialResult }: OrdersPanelProps) {
                         ) : (
                           <span className="text-text-muted">—</span>
                         )}
+                      </td>
+                      <td className={`${orderTableCellClass} text-right`}>
+                        <OrderRowActions
+                          order={order}
+                          onOrderUpdated={handleOrderUpdated}
+                        />
                       </td>
                     </tr>
                   ))
