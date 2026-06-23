@@ -3,6 +3,17 @@ import { Logo } from "@/components/layout/Logo";
 import { BRAND_COFFEE } from "@/lib/brand";
 import { CONTACT_INBOX } from "@/lib/contact/config";
 
+const socialLinks = [
+  {
+    href: "https://www.facebook.com/profile.php?id=61590938175270",
+    label: "Facebook",
+  },
+  {
+    href: "https://www.instagram.com/drinkritul/?hl=en",
+    label: "Instagram",
+  },
+];
+
 const footerLinks = {
   policies: [
     { href: "/privacy-policy", label: "Privacy Policy" },
@@ -71,6 +82,19 @@ export function Footer() {
               Functional Coffee is cognitive wellness for the modern ritual.
               Precision-formulated for focus, clarity, and daily performance.
             </p>
+            <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2">
+              {socialLinks.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-text-muted transition-colors hover:text-text-primary"
+                >
+                  {link.label}
+                </a>
+              ))}
+            </div>
           </div>
 
           <div className="shrink-0">
