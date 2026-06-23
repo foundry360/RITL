@@ -3,6 +3,7 @@ import { AdminShell } from "@/components/admin/AdminShell";
 import { WebsiteAnalyticsPanel } from "@/components/admin/WebsiteAnalyticsPanel";
 import { requireAdminSession } from "@/lib/admin/require-session";
 import { getWebsiteAnalyticsData } from "@/lib/analytics/ga-data";
+import { getGoogleAnalyticsConsoleUrl } from "@/lib/analytics/ga-credentials";
 import { BRAND_NAME } from "@/lib/brand";
 
 export const metadata = {
@@ -16,10 +17,14 @@ export default async function AdminAnalyticsPage() {
   }
 
   const initialAnalytics = await getWebsiteAnalyticsData();
+  const googleAnalyticsUrl = getGoogleAnalyticsConsoleUrl();
 
   return (
     <AdminShell userEmail={user.email}>
-      <WebsiteAnalyticsPanel initialAnalytics={initialAnalytics} />
+      <WebsiteAnalyticsPanel
+        initialAnalytics={initialAnalytics}
+        googleAnalyticsUrl={googleAnalyticsUrl}
+      />
     </AdminShell>
   );
 }

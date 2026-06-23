@@ -14,7 +14,7 @@ import {
   YAxis,
 } from "recharts";
 import type { WebsiteAnalyticsData } from "@/lib/analytics/ga-data";
-import { Button } from "@/components/ui/Button";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import {
   orderTableCellClass,
   orderTableClass,
@@ -23,6 +23,7 @@ import {
 
 interface WebsiteAnalyticsPanelProps {
   initialAnalytics: WebsiteAnalyticsData;
+  googleAnalyticsUrl?: string;
 }
 
 const CHART_COLORS = {
@@ -116,7 +117,10 @@ function ChartCard({
   );
 }
 
-export function WebsiteAnalyticsPanel({ initialAnalytics }: WebsiteAnalyticsPanelProps) {
+export function WebsiteAnalyticsPanel({
+  initialAnalytics,
+  googleAnalyticsUrl,
+}: WebsiteAnalyticsPanelProps) {
   const [analytics, setAnalytics] = useState(initialAnalytics);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -160,9 +164,23 @@ export function WebsiteAnalyticsPanel({ initialAnalytics }: WebsiteAnalyticsPane
           </p>
         </div>
 
-        <Button variant="outline" size="sm" onClick={() => void refresh()} disabled={isRefreshing}>
-          {isRefreshing ? "Refreshing…" : "Refresh"}
-        </Button>
+        <div className="flex flex-wrap items-center gap-3">
+          {googleAnalyticsUrl ? (
+            <ButtonLink
+              href={googleAnalyticsUrl}
+              variant="outline"
+              size="sm"
+              className="inline-flex"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Open GA4
+            </ButtonLink>
+          ) : null}
+          <Button variant="outline" size="sm" onClick={() => void refresh()} disabled={isRefreshing}>
+            {isRefreshing ? "Refreshing…" : "Refresh"}
+          </Button>
+        </div>
       </div>
 
       {error ? (

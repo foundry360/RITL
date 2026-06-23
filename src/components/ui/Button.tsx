@@ -52,13 +52,14 @@ export function ButtonLink({
   size = "md",
   href,
   children,
+  ...props
 }: {
   className?: string;
   variant?: ButtonVariant;
   size?: ButtonSize;
   href: string;
   children: React.ReactNode;
-}) {
+} & React.AnchorHTMLAttributes<HTMLAnchorElement>) {
   return (
     <a
       href={href}
@@ -68,6 +69,7 @@ export function ButtonLink({
         sizeStyles[size],
         className
       )}
+      {...props}
     >
       {children}
     </a>

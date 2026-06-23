@@ -3,6 +3,20 @@ export function getGoogleAnalyticsPropertyId(): string | undefined {
   return propertyId || undefined;
 }
 
+export function getGoogleAnalyticsConsoleUrl(): string | undefined {
+  const configured = process.env.GOOGLE_ANALYTICS_CONSOLE_URL?.trim();
+  if (configured) {
+    return configured;
+  }
+
+  const propertyId = getGoogleAnalyticsPropertyId();
+  if (!propertyId) {
+    return undefined;
+  }
+
+  return `https://analytics.google.com/analytics/web/#/p${propertyId}/reports/intelligenthome`;
+}
+
 function normalizePrivateKey(value: string): string {
   let normalized = value.trim();
 
