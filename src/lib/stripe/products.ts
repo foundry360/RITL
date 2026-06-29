@@ -164,7 +164,7 @@ export const products: Record<ProductId, Product> = {
         viewerUrl: FOCUS_COFFEE_VIEWER_URL,
         alt: "Focus Coffee interactive product view",
         label: "3D View",
-        thumbnailSrc: "/products/focus-canister-clean.png",
+        thumbnailSrc: "/products/focus-3d-thumb.png",
       },
     ],
   },

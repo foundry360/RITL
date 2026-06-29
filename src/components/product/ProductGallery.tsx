@@ -121,6 +121,7 @@ function GalleryThumbnail({
             src={thumbSrc}
             alt=""
             fill
+            unoptimized={item.type === "viewer"}
             className={
               item.type === "viewer" ? "object-contain p-1" : "object-cover"
             }
