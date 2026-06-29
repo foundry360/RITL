@@ -256,7 +256,7 @@ export const products: Record<ProductId, Product> = {
       {
         id: "product-image",
         type: "image",
-        src: "/products/matcha-hero-v5.png",
+        src: "/products/matcha-hero-v6.png",
         alt: `${BRAND_NAME} Ceremonial Matcha — Think steady. Feel clear.`,
         label: "Product",
         fit: "contain",
