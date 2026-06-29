@@ -137,7 +137,7 @@ export const products: Record<ProductId, Product> = {
       {
         id: "product-hero",
         type: "image",
-        src: "/products/focus-hero-v6.png",
+        src: "/products/focus-hero-v7.png",
         alt: `${BRAND_NAME} Focus Coffee — Think sharp. Execute clearly.`,
         label: "Product",
         fit: "contain",
