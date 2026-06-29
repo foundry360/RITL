@@ -15,6 +15,6 @@ export const ROASTIFY_PRODUCTS = [
     skuEnvKey: "ROASTIFY_SKU_MATCHA",
     artworkEnvKey: "ROASTIFY_ARTWORK_URL_MATCHA",
     defaultArtworkUrl:
-      "https://storage.roastify.app/design-upload/8a4175a7-d590-47f5-8d81-84e625e9eb1c.jpeg",
+      "https://storage.roastify.app/design-upload/8c853e40-ec97-4ecc-851b-954f2dfb36d2.jpeg",
   },
 ];

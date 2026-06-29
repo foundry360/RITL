@@ -59,7 +59,7 @@ const FOCUS_COFFEE_VIEWER_URL =
   "https://viewer.roastify.app?productType=Tubes&artworkUrl=https://storage.roastify.app/design-upload/a20333cb-cddc-4d3d-ae09-8bfa1b4e0ead.jpeg";
 
 const MATCHA_VIEWER_URL =
-  "https://viewer.roastify.app?productType=Tubes&artworkUrl=https://storage.roastify.app/design-upload/8a4175a7-d590-47f5-8d81-84e625e9eb1c.jpeg";
+  "https://viewer.roastify.app?productType=Tubes&artworkUrl=https://storage.roastify.app/design-upload/8c853e40-ec97-4ecc-851b-954f2dfb36d2.jpeg";
 
 export const products: Record<ProductId, Product> = {
   "focus-coffee": {
@@ -283,7 +283,7 @@ export const products: Record<ProductId, Product> = {
         viewerUrl: MATCHA_VIEWER_URL,
         alt: "Matcha interactive product view",
         label: "3D View",
-        thumbnailSrc: "/products/matcha-tube-mockup.png",
+        thumbnailSrc: "/products/matcha-3d-thumb.png",
       },
     ],
   },
