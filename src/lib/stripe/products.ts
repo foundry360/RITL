@@ -56,7 +56,7 @@ export interface Product {
 }
 
 const FOCUS_COFFEE_VIEWER_URL =
-  "https://viewer.roastify.app?productType=Tubes&artworkUrl=https://storage.roastify.app/design-upload/2da560c2-5ee4-4a51-926d-5f7751d2a1d9.jpeg";
+  "https://viewer.roastify.app?productType=Tubes&artworkUrl=https://storage.roastify.app/design-upload/a20333cb-cddc-4d3d-ae09-8bfa1b4e0ead.jpeg";
 
 const MATCHA_VIEWER_URL =
   "https://viewer.roastify.app?productType=Tubes&artworkUrl=https://storage.roastify.app/design-upload/8a4175a7-d590-47f5-8d81-84e625e9eb1c.jpeg";

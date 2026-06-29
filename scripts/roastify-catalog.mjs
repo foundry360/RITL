@@ -7,7 +7,7 @@ export const ROASTIFY_PRODUCTS = [
     skuEnvKey: "ROASTIFY_SKU_FOCUS_COFFEE",
     artworkEnvKey: "ROASTIFY_ARTWORK_URL_FOCUS_COFFEE",
     defaultArtworkUrl:
-      "https://storage.roastify.app/design-upload/2da560c2-5ee4-4a51-926d-5f7751d2a1d9.jpeg",
+      "https://storage.roastify.app/design-upload/a20333cb-cddc-4d3d-ae09-8bfa1b4e0ead.jpeg",
   },
   {
     productId: "matcha",

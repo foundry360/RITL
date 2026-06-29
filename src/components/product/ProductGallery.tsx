@@ -80,6 +80,7 @@ function GalleryMain({
 
   return (
     <iframe
+      key={item.viewerUrl}
       src={item.viewerUrl}
       title={item.alt || `${productName} interactive preview`}
       className="absolute inset-0 h-full w-full border-0"

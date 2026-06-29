@@ -31,6 +31,7 @@ function ProductPlaceholder({ variant }: { variant: "focus" | "matcha" }) {
 function ProductViewer({ product }: { product: Product }) {
   return (
     <iframe
+      key={product.viewerUrl}
       src={product.viewerUrl}
       title={`${product.name} 3D preview`}
       className="absolute inset-0 h-full w-full border-0"
