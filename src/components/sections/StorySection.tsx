@@ -88,8 +88,8 @@ export function StorySection() {
 
           <FadeIn delay={150}>
             <StoryImage
-              src="/story-mushrooms-v4.png"
-              alt={`${BRAND_COFFEE} with functional mushrooms and ingredients`}
+              src="/story-behind-ritul.png"
+              alt={`${BRAND_COFFEE} morning ritual with steaming coffee and RITÜL canister`}
             />
           </FadeIn>
         </div>
